@@ -29,6 +29,20 @@
         </div>
       </header>
 
+      <div v-if="showEnrollKey && module.enrollKey" class="mt-4 flex items-center justify-between gap-2 rounded-2xl border-2 border-ink bg-cloud px-4 py-3">
+        <div class="min-w-0">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-ink/60">Enroll Key</p>
+          <p class="mt-1 truncate font-mono text-sm font-extrabold text-ink">{{ module.enrollKey }}</p>
+        </div>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm"
+          @click="copyEnrollKey"
+        >
+          {{ copied ? 'Copied' : 'Copy' }}
+        </button>
+      </div>
+
       <div class="mt-4 flex flex-wrap gap-2">
         <span class="ink-chip bg-paper">{{ safeNum(module.sessions, 3) }} sesi</span>
         <span class="ink-chip bg-paper">{{ safeNum(module.materials, 0) }} materi</span>
@@ -71,7 +85,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import defaultBanner from '@/assets/images/module-banner-default.svg'
 import { createServices } from '@/services'
@@ -84,6 +98,7 @@ const props = defineProps({
   },
   openTo: { type: String, default: '' },
   detailTo: { type: String, default: '' },
+  showEnrollKey: { type: Boolean, default: false },
 })
 
 const hasCustomBanner = computed(() => {
@@ -116,6 +131,24 @@ const metaLine = computed(() => {
 
 function safeNum(v, fallback) {
   return typeof v === 'number' && Number.isFinite(v) ? v : fallback
+}
+
+const copied = ref(false)
+
+async function copyEnrollKey() {
+  copied.value = false
+  const val = props.module?.enrollKey
+  if (!val) return
+
+  try {
+    await navigator.clipboard.writeText(String(val))
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 1200)
+  } catch {
+    // ignore
+  }
 }
 
 const services = createServices()

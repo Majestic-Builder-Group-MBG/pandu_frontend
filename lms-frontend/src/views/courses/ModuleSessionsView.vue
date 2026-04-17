@@ -9,6 +9,17 @@
               <h1 class="mt-2 truncate text-2xl font-semibold">{{ moduleTitle }}</h1>
               <p class="mt-2 line-clamp-2 text-sm font-semibold text-ink/60">{{ moduleDesc }}</p>
               <p v-if="moduleTeacher" class="mt-3 text-xs font-bold text-ink/50">by {{ moduleTeacher }}</p>
+              <div v-if="showEnrollKey && enrollKey" class="mt-4 flex flex-wrap items-center gap-2">
+                <span class="ink-chip bg-accent/60">Enroll Key</span>
+                <span class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 font-mono text-xs font-extrabold text-ink">{{ enrollKey }}</span>
+                <button
+                  type="button"
+                  class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm"
+                  @click="copyKey"
+                >
+                  {{ keyCopied ? 'Copied' : 'Copy' }}
+                </button>
+              </div>
             </div>
 
             <RouterLink
@@ -219,6 +230,14 @@ const moduleTitle = computed(() => moduleItem.value?.title || `Module #${moduleI
 const moduleDesc = computed(() => moduleItem.value?.desc || ' ')
 const moduleTeacher = computed(() => moduleItem.value?.teacherName || '')
 
+const showEnrollKey = computed(() => {
+  const r = auth.user?.role
+  return r === 'teacher' || r === 'admin'
+})
+
+const enrollKey = ref('')
+const keyCopied = ref(false)
+
 const bannerSrc = computed(() => {
   const cached = banners.urlsById[moduleId.value]
   if (cached) return cached
@@ -241,6 +260,7 @@ onMounted(async () => {
 
   await loadSessions()
   await ensureModuleBanner()
+  await ensureEnrollKey()
 })
 
 watch(moduleId, async () => {
@@ -249,12 +269,48 @@ watch(moduleId, async () => {
   contentsStatus.value = 'idle'
   await loadSessions()
   await ensureModuleBanner()
+  await ensureEnrollKey()
 })
 
 async function ensureModuleBanner() {
   const m = moduleItem.value
   if (!m?.bannerDownloadUrl) return
   await banners.ensureBanner({ moduleId: moduleId.value, bannerPath: m.bannerDownloadUrl, services })
+}
+
+async function ensureEnrollKey() {
+  if (!showEnrollKey.value) {
+    enrollKey.value = ''
+    return
+  }
+
+  const m = moduleItem.value
+  if (m?.enrollKey) {
+    enrollKey.value = m.enrollKey
+    return
+  }
+
+  try {
+    const res = await services.modules.getById(moduleId.value)
+    const data = res?.data || res
+    if (data?.enroll_key) enrollKey.value = data.enroll_key
+  } catch {
+    // ignore
+  }
+}
+
+async function copyKey() {
+  keyCopied.value = false
+  if (!enrollKey.value) return
+  try {
+    await navigator.clipboard.writeText(String(enrollKey.value))
+    keyCopied.value = true
+    setTimeout(() => {
+      keyCopied.value = false
+    }, 1200)
+  } catch {
+    // ignore
+  }
 }
 
 async function loadSessions() {

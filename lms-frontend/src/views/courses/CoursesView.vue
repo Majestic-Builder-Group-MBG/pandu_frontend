@@ -31,6 +31,14 @@
 
         <div class="ml-auto flex items-center gap-3">
           <button
+            v-if="canEnroll"
+            type="button"
+            class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm hover:bg-accent/20"
+            @click="openEnroll = true"
+          >
+            Enroll dengan Key
+          </button>
+          <button
             v-if="canCreateModule"
             type="button"
             class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
@@ -60,7 +68,13 @@
     </div>
 
     <div v-if="filteredModules.length" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <ModuleCard v-for="m in filteredModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
+      <ModuleCard
+        v-for="m in filteredModules"
+        :key="m.id"
+        :module="m"
+        :open-to="`/courses/${m.id}`"
+        :show-enroll-key="showEnrollKey"
+      />
     </div>
 
     <div v-else class="ink-card p-10 text-center">
@@ -75,11 +89,9 @@
       </button>
     </div>
 
-    <CreateModuleModal
-      :open="openCreate"
-      @close="openCreate = false"
-      @created="onCreated"
-    />
+    <CreateModuleModal :open="openCreate" @close="openCreate = false" @created="onCreated" />
+
+    <EnrollModal :open="openEnroll" @close="openEnroll = false" @enrolled="onEnrolled" />
   </section>
 </template>
 
@@ -89,6 +101,7 @@ import { useRouter } from 'vue-router'
 
 import ModuleCard from '@/components/dashboard/ModuleCard.vue'
 import CreateModuleModal from '@/components/modules/CreateModuleModal.vue'
+import EnrollModal from '@/components/enroll/EnrollModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useModulesStore } from '@/stores/modules'
 import { createServices } from '@/services'
@@ -100,11 +113,16 @@ const auth = useAuthStore()
 const router = useRouter()
 
 const openCreate = ref(false)
+const openEnroll = ref(false)
 
 const canCreateModule = computed(() => {
   const r = auth.user?.role
   return r === 'teacher' || r === 'admin'
 })
+
+const canEnroll = computed(() => auth.user?.role === 'student')
+
+const showEnrollKey = computed(() => canCreateModule.value)
 
 const filteredModules = computed(() => {
   const q = query.value.trim().toLowerCase()
@@ -134,5 +152,10 @@ function onCreated(newModule) {
   openCreate.value = false
   // After create, go to sessions page
   if (newModule?.id) router.push(`/courses/${newModule.id}`)
+}
+
+async function onEnrolled() {
+  openEnroll.value = false
+  await reload()
 }
 </script>
