@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Module banner">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f5f7fb"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f6d84b"/>
+      <stop offset="1" stop-color="#3f6fe8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="675" fill="url(#bg)"/>
+
+  <g opacity="0.09" fill="#121212">
+    <path d="M80 150h240a24 24 0 0 1 24 24v52a24 24 0 0 1-24 24H80a24 24 0 0 1-24-24v-52a24 24 0 0 1 24-24z"/>
+    <path d="M430 110h360a28 28 0 0 1 28 28v80a28 28 0 0 1-28 28H430a28 28 0 0 1-28-28v-80a28 28 0 0 1 28-28z"/>
+    <path d="M900 160h220a22 22 0 0 1 22 22v44a22 22 0 0 1-22 22H900a22 22 0 0 1-22-22v-44a22 22 0 0 1 22-22z"/>
+  </g>
+
+  <path d="M0 520c160-70 320-60 480-10s320 90 480 0 240-80 240-80v245H0z" fill="url(#accent)" opacity="0.18"/>
+  <path d="M0 560c160-60 320-40 480 10s320 90 480 10 240-80 240-80v165H0z" fill="#f6d84b" opacity="0.12"/>
+
+  <g transform="translate(90 85)">
+    <rect x="0" y="0" width="88" height="88" rx="18" fill="#ffffff" stroke="#121212" stroke-width="10"/>
+    <path d="M24 56h40" stroke="#121212" stroke-width="10" stroke-linecap="round"/>
+    <path d="M24 34h28" stroke="#3f6fe8" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

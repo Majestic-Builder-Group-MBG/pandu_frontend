@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-cloud font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    background: theme('colors.accent.soft');
+  }
+}
+
+@layer components {
+  .ink-card {
+    @apply rounded-2xl border-2 border-ink bg-paper shadow-ink;
+  }
+
+  .ink-chip {
+    @apply inline-flex items-center justify-center rounded-full border-2 border-ink bg-paper px-3 py-1 text-xs font-bold;
+  }
+
+  .ink-input {
+    @apply w-full rounded-xl bg-slate-100 px-4 py-3 text-sm text-ink outline-none ring-ink/10 placeholder:text-slate-500 focus:ring;
+  }
+}
+
+@layer utilities {
+  .bg-paper-grid {
+    background-image: linear-gradient(to right, rgba(18, 18, 18, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(18, 18, 18, 0.06) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
