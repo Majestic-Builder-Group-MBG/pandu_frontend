@@ -6,8 +6,10 @@
       </div>
 
       <div class="absolute left-4 top-4 flex items-center gap-2">
-        <span class="ink-chip bg-accent/60">{{ module.level }}</span>
-        <span v-if="!hasCustomBanner" class="ink-chip bg-paper">Default banner</span>
+        <span class="ink-chip bg-accent/60">{{ module.level || 'Module' }}</span>
+        <span v-if="bannerStatus === 'loading'" class="ink-chip bg-paper">Loading banner...</span>
+        <span v-else-if="bannerStatus === 'error'" class="ink-chip bg-paper">Banner failed</span>
+        <span v-else-if="!hasCustomBanner" class="ink-chip bg-paper">Default banner</span>
       </div>
     </div>
 
@@ -17,6 +19,7 @@
           <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/50">Module</p>
           <h3 class="mt-2 truncate text-base font-semibold">{{ module.title }}</h3>
           <p class="mt-1 line-clamp-2 text-sm font-semibold text-ink/60">{{ module.desc }}</p>
+          <p v-if="metaLine" class="mt-2 truncate text-xs font-bold text-ink/50">{{ metaLine }}</p>
         </div>
         <div class="grid h-10 w-10 place-items-center rounded-2xl border-2 border-ink bg-paper shadow-ink-sm" aria-label="Module">
           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
@@ -27,16 +30,39 @@
       </header>
 
       <div class="mt-4 flex flex-wrap gap-2">
-        <span class="ink-chip bg-paper">{{ module.sessions }} sesi</span>
-        <span class="ink-chip bg-paper">{{ module.materials }} materi</span>
-        <span class="ink-chip bg-paper">{{ module.quizzes }} kuis</span>
+        <span class="ink-chip bg-paper">{{ safeNum(module.sessions, 3) }} sesi</span>
+        <span class="ink-chip bg-paper">{{ safeNum(module.materials, 0) }} materi</span>
+        <span class="ink-chip bg-paper">{{ safeNum(module.quizzes, 0) }} kuis</span>
       </div>
 
       <div class="mt-5 flex items-center justify-between">
-        <button class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">
+        <RouterLink
+          v-if="openTo"
+          :to="openTo"
+          class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+        >
+          Buka
+        </RouterLink>
+        <button
+          v-else
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+        >
           Buka
         </button>
-        <button class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-bold text-ink/70 hover:border-ink hover:bg-accent/30 hover:text-ink">
+
+        <RouterLink
+          v-if="detailTo"
+          :to="detailTo"
+          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-bold text-ink/70 hover:border-ink hover:bg-accent/30 hover:text-ink"
+        >
+          Detail
+        </RouterLink>
+        <button
+          v-else
+          type="button"
+          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-bold text-ink/70 hover:border-ink hover:bg-accent/30 hover:text-ink"
+        >
           Detail
         </button>
       </div>
@@ -45,21 +71,62 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import defaultBanner from '@/assets/images/module-banner-default.svg'
+import { createServices } from '@/services'
+import { useModuleBannersStore } from '@/stores/moduleBanners'
 
 const props = defineProps({
   module: {
     type: Object,
     required: true,
   },
+  openTo: { type: String, default: '' },
+  detailTo: { type: String, default: '' },
 })
 
 const hasCustomBanner = computed(() => {
-  return Boolean(props.module?.bannerUrl || props.module?.banner)
+  return Boolean(props.module?.bannerDownloadUrl || props.module?.hasBanner)
 })
 
 const bannerSrc = computed(() => {
-  return props.module?.bannerUrl || props.module?.banner || defaultBanner
+  const cached = banners.urlsById[props.module?.id]
+  if (cached) return cached
+  return defaultBanner
+})
+
+const bannerStatus = computed(() => {
+  const id = props.module?.id
+  if (!id) return 'idle'
+  return banners.statusById[id] || 'idle'
+})
+
+const metaLine = computed(() => {
+  const teacher = props.module?.teacherName
+  const createdAt = props.module?.createdAt
+  const parts = []
+  if (teacher) parts.push(`by ${teacher}`)
+  if (createdAt) {
+    const d = new Date(createdAt)
+    if (!Number.isNaN(d.getTime())) parts.push(d.toLocaleDateString())
+  }
+  return parts.join(' - ')
+})
+
+function safeNum(v, fallback) {
+  return typeof v === 'number' && Number.isFinite(v) ? v : fallback
+}
+
+const services = createServices()
+const banners = useModuleBannersStore()
+
+onMounted(async () => {
+  const id = props.module?.id
+  const dl = props.module?.bannerDownloadUrl
+
+  // Always use authenticated banner endpoint when available.
+  if (!id || !dl) return
+  await banners.ensureBanner({ moduleId: id, bannerPath: dl, services })
 })
 </script>

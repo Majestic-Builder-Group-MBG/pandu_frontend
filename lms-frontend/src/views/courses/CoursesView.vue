@@ -27,47 +27,40 @@
       </div>
 
       <div class="mt-5 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          class="ink-chip"
-          :class="level === 'all' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="level = 'all'"
-        >
-          All ({{ allModules.length }})
-        </button>
-        <button
-          type="button"
-          class="ink-chip"
-          :class="level === 'Basic' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="level = 'Basic'"
-        >
-          Basic
-        </button>
-        <button
-          type="button"
-          class="ink-chip"
-          :class="level === 'Intermediate' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="level = 'Intermediate'"
-        >
-          Intermediate
-        </button>
-        <button
-          type="button"
-          class="ink-chip"
-          :class="level === 'Advanced' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="level = 'Advanced'"
-        >
-          Advanced
-        </button>
+        <span class="ink-chip bg-accent/60">All ({{ modules.items.length }})</span>
 
-        <span class="ml-auto text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">
-          Showing {{ filteredModules.length }}
-        </span>
+        <div class="ml-auto flex items-center gap-3">
+          <button
+            v-if="canCreateModule"
+            type="button"
+            class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            @click="openCreate = true"
+          >
+            + Buat Modul
+          </button>
+          <span class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Showing {{ filteredModules.length }}</span>
+        </div>
       </div>
     </header>
 
+    <div v-if="modules.status === 'loading'" class="ink-card p-10 text-center">
+      <p class="text-sm font-extrabold">Memuat modul...</p>
+    </div>
+
+    <div v-else-if="modules.status === 'error'" class="ink-card p-10 text-center">
+      <p class="text-sm font-extrabold">Gagal memuat modul</p>
+      <p class="mt-2 text-sm font-semibold text-ink/60">{{ modules.error }}</p>
+      <button
+        type="button"
+        class="mt-5 rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+        @click="reload()"
+      >
+        Coba lagi
+      </button>
+    </div>
+
     <div v-if="filteredModules.length" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <ModuleCard v-for="m in filteredModules" :key="m.id" :module="m" />
+      <ModuleCard v-for="m in filteredModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
     </div>
 
     <div v-else class="ink-card p-10 text-center">
@@ -81,29 +74,65 @@
         Reset
       </button>
     </div>
+
+    <CreateModuleModal
+      :open="openCreate"
+      @close="openCreate = false"
+      @created="onCreated"
+    />
   </section>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import ModuleCard from '@/components/dashboard/ModuleCard.vue'
-import { modules as allModules } from '@/data/modules'
+import CreateModuleModal from '@/components/modules/CreateModuleModal.vue'
+import { useAuthStore } from '@/stores/auth'
+import { useModulesStore } from '@/stores/modules'
+import { createServices } from '@/services'
 
 const query = ref('')
-const level = ref('all')
+const modules = useModulesStore()
+const services = createServices()
+const auth = useAuthStore()
+const router = useRouter()
+
+const openCreate = ref(false)
+
+const canCreateModule = computed(() => {
+  const r = auth.user?.role
+  return r === 'teacher' || r === 'admin'
+})
 
 const filteredModules = computed(() => {
   const q = query.value.trim().toLowerCase()
-  return allModules.filter((m) => {
-    const matchesLevel = level.value === 'all' ? true : m.level === level.value
-    const matchesQuery = !q ? true : `${m.title} ${m.desc}`.toLowerCase().includes(q)
-    return matchesLevel && matchesQuery
+  return modules.items.filter((m) => {
+    if (!q) return true
+    return `${m.title} ${m.desc} ${m.teacherName || ''}`.toLowerCase().includes(q)
   })
 })
 
 function reset() {
   query.value = ''
-  level.value = 'all'
+}
+
+async function reload() {
+  try {
+    await modules.fetchAll({ services, force: true })
+  } catch {
+    // handled by UI
+  }
+}
+
+onMounted(async () => {
+  if (!modules.items.length) await reload()
+})
+
+function onCreated(newModule) {
+  openCreate.value = false
+  // After create, go to sessions page
+  if (newModule?.id) router.push(`/courses/${newModule.id}`)
 }
 </script>

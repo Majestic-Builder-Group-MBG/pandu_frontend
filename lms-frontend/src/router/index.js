@@ -4,6 +4,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
+import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -36,6 +37,12 @@ const router = createRouter({
       path: '/courses',
       name: 'courses',
       component: CoursesView,
+      meta: { layout: 'default', requiresAuth: true },
+    },
+    {
+      path: '/courses/:moduleId',
+      name: 'module-sessions',
+      component: ModuleSessionsView,
       meta: { layout: 'default', requiresAuth: true },
     },
     {

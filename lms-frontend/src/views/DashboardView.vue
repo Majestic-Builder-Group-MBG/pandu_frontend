@@ -77,7 +77,12 @@
         </div>
 
         <div class="mt-5 grid gap-4 md:grid-cols-2">
-          <ModuleCard v-for="m in visibleModules" :key="m.id" :module="m" />
+          <ModuleCard v-for="m in visibleModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
+        </div>
+
+        <div v-if="modules.status === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat modul...</div>
+        <div v-else-if="modules.status === 'error'" class="mt-4 text-sm font-semibold text-ink/60">
+          Gagal memuat modul: <span class="font-extrabold">{{ modules.error }}</span>
         </div>
       </div>
 
@@ -179,7 +184,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
@@ -188,9 +193,12 @@ import ModuleCard from '@/components/dashboard/ModuleCard.vue'
 import SessionCard from '@/components/dashboard/SessionCard.vue'
 import ActivityItem from '@/components/dashboard/ActivityItem.vue'
 import MiniCalendar from '@/components/dashboard/MiniCalendar.vue'
-import { modules as allModules } from '@/data/modules'
+import { useModulesStore } from '@/stores/modules'
+import { createServices } from '@/services'
 
 const auth = useAuthStore()
+const modules = useModulesStore()
+const services = createServices()
 
 const displayName = computed(() => auth.user?.name || 'User')
 const roleLabel = computed(() => auth.user?.role || 'student')
@@ -209,7 +217,15 @@ const stats = ref({
   newQuizzes: 5,
 })
 
-const visibleModules = computed(() => allModules.slice(0, 4))
+const visibleModules = computed(() => modules.items.slice(0, 4))
+
+onMounted(async () => {
+  try {
+    await modules.fetchAll({ services })
+  } catch {
+    // error shown in UI
+  }
+})
 
 const materials = ref([
   { id: 1, title: 'Bab 4 - Matriks (Ringkasan)', module: 'Aljabar Linear Matrix', meta: 'PDF - 12 halaman' },
