@@ -21,7 +21,19 @@
         >
           Courses
         </RouterLink>
-        <RouterLink to="/login" class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm">
+        <button
+          v-if="auth.token"
+          type="button"
+          class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
+          @click="onLogout"
+        >
+          Logout
+        </button>
+        <RouterLink
+          v-else
+          to="/login"
+          class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
+        >
           Login
         </RouterLink>
       </nav>
@@ -31,4 +43,17 @@
 
 <script setup>
 import { RouterLink } from 'vue-router'
+
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { createServices } from '@/services'
+
+const router = useRouter()
+const auth = useAuthStore()
+const services = createServices()
+
+async function onLogout() {
+  await auth.logout({ services })
+  router.push('/login')
+}
 </script>

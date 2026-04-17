@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
+import RegisterView from '@/views/auth/RegisterView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -26,6 +27,12 @@ const router = createRouter({
       meta: { layout: 'auth' },
     },
     {
+      path: '/register',
+      name: 'register',
+      component: RegisterView,
+      meta: { layout: 'auth' },
+    },
+    {
       path: '/courses',
       name: 'courses',
       component: CoursesView,
@@ -47,6 +54,10 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
 
   if (to.name === 'login' && auth.token) {
+    return { name: 'dashboard' }
+  }
+
+  if (to.name === 'register' && auth.token) {
     return { name: 'dashboard' }
   }
 

@@ -69,8 +69,19 @@ export const useAuthStore = defineStore('auth', {
         throw e
       }
     },
-    logout() {
-      this.clearSession()
+    async logout({ services } = {}) {
+      this.status = 'loading'
+      this.error = null
+      try {
+        if (services?.auth?.logout && this.token) {
+          await services.auth.logout()
+        }
+      } catch {
+        // Even if remote logout fails, clear local session.
+      } finally {
+        this.clearSession()
+        this.status = 'idle'
+      }
     },
   },
 })
