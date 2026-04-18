@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-20 border-b-2 border-ink bg-paper/80 backdrop-blur">
+  <header class="sticky top-0 z-50 border-b-2 border-ink bg-paper/80 backdrop-blur">
     <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
       <RouterLink to="/dashboard" class="flex items-center gap-3">
         <span class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-accent text-xs font-extrabold">

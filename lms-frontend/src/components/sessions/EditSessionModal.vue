@@ -3,7 +3,7 @@
     :open="open"
     title="Edit Sesi"
     kicker="Session"
-    subtitle="Ubah judul/deskripsi sesi, dan kelola konten (tambah/hapus)."
+    subtitle="Ubah judul, deskripsi, dan materi pada sesi ini."
     @close="$emit('close')"
   >
     <form class="space-y-4" @submit.prevent="save">
@@ -24,11 +24,11 @@
 
       <div class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-semibold">Konten Saat Ini</h3>
+          <h3 class="text-base font-semibold">Materi Saat Ini</h3>
           <span class="ink-chip bg-accent/40">{{ existingContents.length }}</span>
         </div>
 
-        <p v-if="contentsStatus === 'loading'" class="mt-3 text-sm font-semibold text-ink/60">Memuat konten...</p>
+        <p v-if="contentsStatus === 'loading'" class="mt-3 text-sm font-semibold text-ink/60">Memuat materi...</p>
         <p v-else-if="contentsStatus === 'error'" class="mt-3 text-sm font-semibold text-ink/60">{{ contentsError }}</p>
 
         <div v-else class="mt-4 space-y-3">
@@ -38,8 +38,8 @@
             class="flex items-start justify-between gap-4 rounded-2xl border-2 border-ink bg-cloud p-4"
           >
             <div class="min-w-0">
-              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">{{ c.type }}</p>
-              <p class="mt-1 truncate text-sm font-extrabold">{{ c.title }}</p>
+              <p class="truncate text-sm font-extrabold">{{ c.title }}</p>
+              <p class="mt-1 text-xs font-semibold text-ink/60">{{ c.typeLabel }}</p>
               <p v-if="c.type === 'url'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ c.url }}</p>
               <p v-else-if="c.type === 'file'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ c.fileName }}</p>
             </div>
@@ -58,7 +58,7 @@
 
       <div class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
         <div class="flex items-center justify-between">
-          <h3 class="text-base font-semibold">Tambah Konten</h3>
+          <h3 class="text-base font-semibold">Tambah Materi</h3>
           <span class="ink-chip bg-accent/40">{{ pendingAdds.length }}</span>
         </div>
 
@@ -69,7 +69,7 @@
             :class="newType === 'url' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
             @click="newType = 'url'"
           >
-            URL
+            Tautan
           </button>
           <button
             type="button"
@@ -77,7 +77,7 @@
             :class="newType === 'text' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
             @click="newType = 'text'"
           >
-            Text
+            Teks
           </button>
           <button
             type="button"
@@ -85,28 +85,28 @@
             :class="newType === 'file' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
             @click="newType = 'file'"
           >
-            File
+            Berkas
           </button>
         </div>
 
         <div class="mt-4 space-y-3">
           <label class="block space-y-2">
-            <span class="text-sm font-semibold">Title (opsional)</span>
-            <input v-model.trim="newTitle" class="ink-input" placeholder="Judul konten..." />
+            <span class="text-sm font-semibold">Judul materi (opsional)</span>
+            <input v-model.trim="newTitle" class="ink-input" placeholder="Judul materi..." />
           </label>
 
           <label v-if="newType === 'url'" class="block space-y-2">
-            <span class="text-sm font-semibold">URL</span>
+            <span class="text-sm font-semibold">Tautan</span>
             <input v-model.trim="newUrl" class="ink-input" placeholder="https://www.youtube.com/watch?v=..." />
           </label>
 
           <label v-else-if="newType === 'text'" class="block space-y-2">
-            <span class="text-sm font-semibold">Text Content</span>
+            <span class="text-sm font-semibold">Isi materi</span>
             <textarea v-model.trim="newText" class="ink-input min-h-[120px] resize-y" placeholder="Ringkasan materi..." />
           </label>
 
           <label v-else class="block space-y-2">
-            <span class="text-sm font-semibold">File</span>
+            <span class="text-sm font-semibold">Berkas</span>
             <input
               type="file"
               class="block w-full rounded-xl border-2 border-ink bg-paper px-4 py-3 text-sm font-semibold shadow-ink-sm file:mr-4 file:rounded-lg file:border-0 file:bg-accent/60 file:px-3 file:py-2 file:text-sm file:font-extrabold"
@@ -130,8 +130,8 @@
               class="flex items-start justify-between gap-4 rounded-2xl border-2 border-ink bg-cloud p-4"
             >
               <div class="min-w-0">
-                <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">{{ p.content_type }}</p>
                 <p class="mt-1 truncate text-sm font-extrabold">{{ p.title || '(no title)' }}</p>
+                <p class="mt-1 text-xs font-semibold text-ink/60">{{ pendingTypeLabel(p.content_type) }}</p>
                 <p v-if="p.content_type === 'url'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ p.url }}</p>
                 <p v-else-if="p.content_type === 'file'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ p.file?.name }}</p>
               </div>
@@ -343,13 +343,19 @@ function normalizeListResponse(res) {
 function mapContent(c) {
   const type = c?.content_type || c?.type || 'text'
   const titleVal = c?.title || (type === 'file' ? 'File' : type === 'url' ? 'Link' : 'Text')
+  const typeLabel = type === 'file' ? 'Berkas' : type === 'url' ? 'Tautan' : 'Teks'
   return {
     id: c?.id,
     type,
     title: titleVal,
+    typeLabel,
     url: c?.url || '',
     text: c?.text_content || c?.text || '',
     fileName: c?.file_name || c?.filename || c?.original_name || 'file',
   }
+}
+
+function pendingTypeLabel(type) {
+  return type === 'file' ? 'Berkas' : type === 'url' ? 'Tautan' : 'Teks'
 }
 </script>

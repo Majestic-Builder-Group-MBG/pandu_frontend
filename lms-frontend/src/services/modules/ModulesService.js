@@ -23,6 +23,31 @@ export class ModulesService {
     })
   }
 
+  update(moduleId, { name, description, enrollKey, banner } = {}) {
+    const fd = new FormData()
+    if (name != null) fd.append('name', name || '')
+    if (description != null) fd.append('description', description || '')
+    if (enrollKey != null) fd.append('enroll_key', enrollKey || '')
+    if (banner) fd.append('banner', banner)
+
+    return this.api.request(`/api/modules/${moduleId}`, {
+      method: 'PUT',
+      body: fd,
+    })
+  }
+
+  regenerateEnrollKey(moduleId) {
+    return this.api.request(`/api/modules/${moduleId}/regenerate-enroll-key`, {
+      method: 'PATCH',
+    })
+  }
+
+  delete(moduleId) {
+    return this.api.request(`/api/modules/${moduleId}`, {
+      method: 'DELETE',
+    })
+  }
+
   getBannerByUrl(bannerPathOrUrl) {
     return this.api.request(bannerPathOrUrl, { method: 'GET', responseType: 'blob' })
   }
