@@ -53,10 +53,41 @@ export class SessionsService {
     })
   }
 
+  updateContent(moduleId, sessionId, contentId, { content_type, title, url, text_content, file } = {}) {
+    const fd = new FormData()
+    if (content_type != null) fd.append('content_type', content_type)
+    if (title != null) fd.append('title', title)
+    if (url != null) fd.append('url', url)
+    if (text_content != null) fd.append('text_content', text_content)
+    if (file != null) fd.append('file', file)
+
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/contents/${contentId}`, {
+      method: 'PUT',
+      body: fd,
+    })
+  }
+
   downloadContentFile(moduleId, sessionId, contentId) {
     return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/contents/${contentId}/file`, {
       method: 'GET',
       responseType: 'blob',
+    })
+  }
+
+  createContentViewUrl(moduleId, sessionId, contentId) {
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/contents/${contentId}/view-url`, {
+      method: 'POST',
+    })
+  }
+
+  getSchedule(moduleId, sessionId) {
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/schedule`, { method: 'GET' })
+  }
+
+  setSchedule(moduleId, sessionId, { open_at } = {}) {
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/schedule`, {
+      method: 'PATCH',
+      body: { open_at: open_at ?? null },
     })
   }
 }

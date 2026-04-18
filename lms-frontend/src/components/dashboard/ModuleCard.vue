@@ -13,12 +13,6 @@
         <img :src="bannerSrc" alt="Module banner" class="h-full w-full object-cover" />
       </div>
 
-      <div class="absolute left-4 top-4 flex items-center gap-2">
-        <span class="ink-chip bg-accent/60">{{ module.level || 'Module' }}</span>
-        <span v-if="bannerStatus === 'loading'" class="ink-chip bg-paper">Loading banner...</span>
-        <span v-else-if="bannerStatus === 'error'" class="ink-chip bg-paper">Banner failed</span>
-        <span v-else-if="!hasCustomBanner" class="ink-chip bg-paper">Default banner</span>
-      </div>
     </div>
 
     <div class="p-5">
@@ -47,7 +41,6 @@
 
       <div class="mt-4 flex flex-wrap gap-2">
         <span class="ink-chip bg-paper">{{ safeNum(module.sessions, 3) }} sesi</span>
-        <span class="ink-chip bg-paper">{{ safeNum(module.materials, 0) }} materi</span>
         <span class="ink-chip bg-paper">{{ safeNum(module.quizzes, 0) }} kuis</span>
       </div>
 

@@ -127,7 +127,12 @@
         </div>
 
         <div class="mt-5 space-y-4">
-          <SessionCard v-for="s in sessions" :key="s.id" :session="s" />
+          <div v-if="upcomingStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat sesi mendatang...</div>
+          <div v-else-if="upcomingStatus === 'error'" class="text-sm font-semibold text-ink/60">
+            Gagal memuat sesi mendatang: <span class="font-extrabold">{{ upcomingError }}</span>
+          </div>
+          <div v-else-if="!sessions.length" class="text-sm font-semibold text-ink/60">Belum ada sesi terjadwal.</div>
+          <SessionCard v-else v-for="s in sessions" :key="s.id" :session="s" />
         </div>
       </div>
 
@@ -225,6 +230,8 @@ onMounted(async () => {
   } catch {
     // error shown in UI
   }
+
+  await loadUpcomingSessions()
 })
 
 const materials = ref([
@@ -239,11 +246,9 @@ const quizzes = ref([
   { id: 3, title: 'Quiz 1 - Visual', module: 'Logik Visual 101', questions: 12 },
 ])
 
-const sessions = ref([
-  { id: 1, title: 'Semantik Tingkat Lanjut', subtitle: 'Group A - 10:00 AM', startAt: nextDateISO(2, 10, 0) },
-  { id: 2, title: 'Logik Visual 101', subtitle: 'Open Workshop - 02:30 PM', startAt: nextDateISO(3, 14, 30) },
-  { id: 3, title: 'Aljabar Linear Matrix', subtitle: 'Group B - 09:00 AM', startAt: nextDateISO(6, 9, 0) },
-])
+const upcomingStatus = ref('idle')
+const upcomingError = ref('')
+const sessions = ref([])
 
 const activities = ref([
   {
@@ -300,5 +305,101 @@ function nextDateISO(daysFromNow, hh, mm) {
   d.setDate(d.getDate() + daysFromNow)
   d.setHours(hh, mm, 0, 0)
   return d.toISOString()
+}
+
+async function loadUpcomingSessions() {
+  upcomingStatus.value = 'loading'
+  upcomingError.value = ''
+  sessions.value = []
+
+  try {
+    if (!modules.items.length) {
+      await modules.fetchAll({ services, force: true })
+    }
+
+    const moduleItems = modules.items
+    if (!moduleItems.length) throw new Error('Modul tidak ditemukan')
+
+    // 1) Fetch sessions per module (limited parallelism).
+    const sessionsByModule = await mapLimit(moduleItems, 4, async (m) => {
+      try {
+        const res = await services.sessions.list(m.id)
+        const list = normalizeListResponse(res)
+        return list.map((s) => ({ module: m, session: s }))
+      } catch {
+        return []
+      }
+    })
+
+    const pairs = sessionsByModule.flat()
+
+    // 2) Resolve open_at for each session.
+    const now = Date.now()
+    const upcoming = []
+
+    await mapLimit(pairs, 8, async ({ module: m, session: s }) => {
+      const moduleId = m.id
+      const sessionId = s?.id
+      if (!moduleId || !sessionId) return
+
+      let openAt = s?.open_at || s?.openAt || null
+      if (!openAt) {
+        try {
+          const res = await services.sessions.getSchedule(moduleId, sessionId)
+          openAt = res?.data?.open_at || res?.data?.openAt || res?.open_at || res?.openAt || null
+        } catch {
+          // If schedule isn't accessible (e.g. 403), skip.
+          return
+        }
+      }
+
+      const d = new Date(openAt)
+      if (Number.isNaN(d.getTime())) return
+      if (d.getTime() <= now) return
+
+      upcoming.push({
+        id: `${moduleId}-${sessionId}`,
+        title: s?.title || `Sesi #${sessionId}`,
+        subtitle: `${m.title} - ${formatTime(d)}`,
+        startAt: d.toISOString(),
+      })
+    })
+
+    upcoming.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
+    sessions.value = upcoming.slice(0, 6)
+    upcomingStatus.value = 'success'
+  } catch (e) {
+    upcomingStatus.value = 'error'
+    upcomingError.value = e?.message || 'Gagal memuat jadwal'
+  }
+}
+
+function formatTime(d) {
+  try {
+    return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+}
+
+function normalizeListResponse(res) {
+  if (Array.isArray(res)) return res
+  if (res && typeof res === 'object') {
+    if (Array.isArray(res.data)) return res.data
+  }
+  return []
+}
+
+async function mapLimit(items, limit, worker) {
+  const out = new Array(items.length)
+  let nextIndex = 0
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (nextIndex < items.length) {
+      const i = nextIndex++
+      out[i] = await worker(items[i], i)
+    }
+  })
+  await Promise.all(workers)
+  return out
 }
 </script>
