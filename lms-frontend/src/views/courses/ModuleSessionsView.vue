@@ -134,6 +134,14 @@
         <div class="ink-card p-6">
           <div class="flex items-center justify-between gap-4">
             <h2 class="text-lg font-semibold">Sesi</h2>
+            <button
+              v-if="canManageSessions"
+              type="button"
+              class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+              @click="openCreateSession"
+            >
+              + Tambah
+            </button>
           </div>
 
           <p v-if="sessionsStatus === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat sesi...</p>
@@ -151,6 +159,7 @@
               :can-manage="canManageSessions"
               @select="selectSession(s.id)"
               @renamed="onSessionRenamed"
+              @schedule="openScheduleForSession"
               @delete="openDelete(s)"
             />
           </div>
@@ -218,8 +227,19 @@
           </div>
 
           <div class="bg-paper px-6 pb-6">
+            <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <p class="text-xs font-bold text-ink/60">
+                Dibuka:
+                <span class="font-extrabold text-ink/80">{{ scheduleLabel }}</span>
+              </p>
+            </div>
+
             <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
             <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
+            <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
+              Sesi ini belum dibuka sesuai jadwal.
+              <span v-if="scheduleOpenAt" class="font-extrabold">Dibuka {{ scheduleHuman }}.</span>
+            </p>
             <p v-else-if="contentsStatus === 'error'" class="text-sm font-semibold text-ink/60">
               Gagal memuat materi: <span class="font-extrabold">{{ contentsError }}</span>
             </p>
@@ -451,6 +471,93 @@
       @confirm="confirmDelete"
     />
 
+    <BaseModal
+      :open="scheduleOpen"
+      title="Jadwal Buka Sesi"
+      kicker="Schedule"
+      subtitle="Atur kapan sesi bisa dibuka oleh murid."
+      @close="closeScheduleModal"
+    >
+      <form class="space-y-4" @submit.prevent="saveSchedule">
+        <label class="block space-y-2">
+          <span class="text-sm font-semibold">Open at (opsional)</span>
+          <input v-model="scheduleDraftLocal" type="datetime-local" class="ink-input" />
+          <p class="text-xs font-bold text-ink/50">Kosongkan untuk menghapus jadwal.</p>
+        </label>
+
+        <p v-if="scheduleModalError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
+          {{ scheduleModalError }}
+        </p>
+      </form>
+
+      <template #actions>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
+          :disabled="scheduleSaving"
+          @click="closeScheduleModal"
+        >
+          Batal
+        </button>
+
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+          :disabled="scheduleSaving"
+          @click="clearSchedule"
+        >
+          Hapus Jadwal
+        </button>
+
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-accent px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+          :disabled="scheduleSaving"
+          @click="saveSchedule"
+        >
+          {{ scheduleSaving ? 'Menyimpan...' : 'Simpan' }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="createSessionOpen"
+      title="Tambah Sesi"
+      kicker="Sesi"
+      subtitle="Buat sesi baru untuk modul ini."
+      @close="closeCreateSession"
+    >
+      <form class="space-y-4" @submit.prevent="createSession">
+        <label class="block space-y-2">
+          <span class="text-sm font-semibold">Judul Sesi</span>
+          <input v-model.trim="createSessionTitle" class="ink-input" placeholder="Contoh: Pertemuan 1" />
+        </label>
+
+        <p v-if="createSessionError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
+          {{ createSessionError }}
+        </p>
+      </form>
+
+      <template #actions>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
+          :disabled="createSessionLoading"
+          @click="closeCreateSession"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-accent px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+          :disabled="createSessionLoading"
+          @click="createSession"
+        >
+          {{ createSessionLoading ? 'Membuat...' : 'Buat Sesi' }}
+        </button>
+      </template>
+    </BaseModal>
+
     <ConfirmDialog
       :open="deleteContentOpen"
       title="Hapus Materi"
@@ -549,6 +656,11 @@ const modules = useModulesStore()
 const banners = useModuleBannersStore()
 
 const moduleId = computed(() => Number(route.params.moduleId))
+const preselectSessionId = computed(() => {
+  const raw = route.query.sessionId
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : null
+})
 
 const sessions = ref([])
 const sessionsStatus = ref('idle')
@@ -569,6 +681,11 @@ const editSession = ref(null)
 const deleteOpen = ref(false)
 const deleteSession = ref(null)
 const deleteLoading = ref(false)
+
+const createSessionOpen = ref(false)
+const createSessionLoading = ref(false)
+const createSessionError = ref('')
+const createSessionTitle = ref('')
 
 const menuOpen = ref(false)
 const menuRef = ref(null)
@@ -675,6 +792,36 @@ const selectedSession = computed(() => sessions.value.find((s) => s.id === selec
 const selectedSessionTitle = computed(() => selectedSession.value?.title || 'Pilih sesi')
 const selectedSessionDesc = computed(() => selectedSession.value?.description || ' ')
 
+const isStudent = computed(() => auth.user?.role === 'student')
+
+const scheduleStatus = ref('idle')
+const scheduleError = ref('')
+const scheduleOpenAt = ref(null)
+
+const scheduleOpen = ref(false)
+const scheduleSaving = ref(false)
+const scheduleModalError = ref('')
+const scheduleDraftLocal = ref('')
+
+const scheduleHuman = computed(() => {
+  if (!scheduleOpenAt.value) return ''
+  const d = new Date(scheduleOpenAt.value)
+  if (Number.isNaN(d.getTime())) return ''
+  try {
+    return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return d.toLocaleString()
+  }
+})
+
+const scheduleLabel = computed(() => {
+  if (!selectedSessionId.value) return '-'
+  if (scheduleStatus.value === 'loading') return 'memuat...'
+  if (scheduleError.value) return 'gagal memuat'
+  if (!scheduleOpenAt.value) return 'kapan saja'
+  return scheduleHuman.value || scheduleOpenAt.value
+})
+
 const deleteModuleMessage = computed(() => {
   return `Kamu yakin mau menghapus modul ${moduleTitle.value}? Tindakan ini tidak bisa dibatalkan.`
 })
@@ -717,6 +864,11 @@ watch(moduleId, async () => {
   closeContentModal()
   closeDeleteContent()
   closeMediaPreview()
+  closeCreateSession()
+  closeScheduleModal()
+  scheduleStatus.value = 'idle'
+  scheduleError.value = ''
+  scheduleOpenAt.value = null
   isEditingEnrollKey.value = false
   deleteModuleOpen.value = false
   moduleActionLoading.value = ''
@@ -801,6 +953,7 @@ function onDocumentKeydown(event) {
   hideContentsMenu()
   closeContentActions()
   closeMediaPreview()
+  closeScheduleModal()
   isEditingEnrollKey.value = false
 }
 
@@ -1160,6 +1313,13 @@ async function loadSessions() {
       .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
 
     sessionsStatus.value = 'success'
+
+    const wanted = preselectSessionId.value
+    if (wanted && sessions.value.some((s) => s.id === wanted)) {
+      selectSession(wanted)
+      return
+    }
+
     if (!selectedSessionId.value && sessions.value.length) {
       selectSession(sessions.value[0].id)
     }
@@ -1171,6 +1331,42 @@ async function loadSessions() {
 
 function selectSession(id) {
   selectedSessionId.value = id
+}
+
+function openCreateSession() {
+  createSessionError.value = ''
+  createSessionTitle.value = ''
+  createSessionOpen.value = true
+}
+
+function closeCreateSession() {
+  createSessionOpen.value = false
+  createSessionLoading.value = false
+  createSessionError.value = ''
+}
+
+async function createSession() {
+  if (!canManageSessions.value) return
+  createSessionError.value = ''
+
+  if (!createSessionTitle.value.trim()) {
+    createSessionError.value = 'Judul sesi wajib diisi.'
+    return
+  }
+
+  createSessionLoading.value = true
+  try {
+    const res = await services.sessions.create(moduleId.value, { title: createSessionTitle.value.trim() })
+    const newId = res?.data?.id || res?.id || null
+
+    await loadSessions()
+    if (newId) selectSession(newId)
+    closeCreateSession()
+  } catch (e) {
+    createSessionError.value = e?.message || 'Gagal membuat sesi'
+  } finally {
+    createSessionLoading.value = false
+  }
 }
 
 function openEdit(s) {
@@ -1232,12 +1428,136 @@ watch(selectedSessionId, async () => {
   closeContentModal()
   closeDeleteContent()
   closeMediaPreview()
+  await loadSchedule(selectedSessionId.value)
+
+  const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
+  const isLocked =
+    isStudent.value && openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+  if (isLocked) {
+    contents.value = []
+    contentsError.value = ''
+    contentsStatus.value = 'locked'
+    return
+  }
+
   await loadContents(selectedSessionId.value)
 })
 
 async function reloadSelectedContents() {
   if (!selectedSessionId.value) return
-  await loadContents(selectedSessionId.value, { force: true })
+  // Respect schedule lock for students.
+  const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
+  const isLocked = isStudent.value && openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+  if (isLocked) {
+    contents.value = []
+    contentsError.value = ''
+    contentsStatus.value = 'locked'
+    return
+  }
+  await loadContents(selectedSessionId.value)
+}
+
+async function loadSchedule(sessionId) {
+  scheduleStatus.value = 'loading'
+  scheduleError.value = ''
+  scheduleOpenAt.value = null
+
+  try {
+    const res = await services.sessions.getSchedule(moduleId.value, sessionId)
+    const openAt = res?.data?.open_at || res?.data?.openAt || res?.open_at || res?.openAt || null
+
+    if (openAt) {
+      const d = new Date(openAt)
+      if (!Number.isNaN(d.getTime())) {
+        scheduleOpenAt.value = d.toISOString()
+      }
+    }
+
+    scheduleStatus.value = 'success'
+  } catch (e) {
+    scheduleStatus.value = 'error'
+    scheduleError.value = e?.message || 'Gagal memuat jadwal'
+  }
+}
+
+function openScheduleModal() {
+  scheduleModalError.value = ''
+  scheduleDraftLocal.value = isoToLocalInput(scheduleOpenAt.value)
+  scheduleOpen.value = true
+}
+
+async function openScheduleForSession(sessionId) {
+  if (!canManageSessions.value) return
+  if (!sessionId) return
+
+  if (selectedSessionId.value !== sessionId) {
+    selectedSessionId.value = sessionId
+  }
+
+  await loadSchedule(sessionId)
+  openScheduleModal()
+}
+
+function closeScheduleModal() {
+  scheduleOpen.value = false
+  scheduleSaving.value = false
+  scheduleModalError.value = ''
+}
+
+async function saveSchedule() {
+  if (!canManageSessions.value || !selectedSessionId.value) return
+
+  scheduleSaving.value = true
+  scheduleModalError.value = ''
+  try {
+    let iso = null
+    if (scheduleDraftLocal.value) {
+      const d = new Date(scheduleDraftLocal.value)
+      if (Number.isNaN(d.getTime())) throw new Error('Format open_at tidak valid. Gunakan format tanggal ISO-8601')
+      iso = d.toISOString()
+    }
+
+    await services.sessions.setSchedule(moduleId.value, selectedSessionId.value, { open_at: iso })
+    await loadSchedule(selectedSessionId.value)
+
+    // Refresh lock state after schedule changes.
+    if (isStudent.value) {
+      const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
+      const isLocked = openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+      if (isLocked) {
+        contents.value = []
+        contentsError.value = ''
+        contentsStatus.value = 'locked'
+      } else {
+        await loadContents(selectedSessionId.value)
+      }
+    }
+
+    closeScheduleModal()
+  } catch (e) {
+    scheduleModalError.value = e?.message || 'Gagal menyimpan jadwal'
+  } finally {
+    scheduleSaving.value = false
+  }
+}
+
+async function clearSchedule() {
+  scheduleDraftLocal.value = ''
+  await saveSchedule()
+}
+
+function isoToLocalInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+
+  const pad = (n) => String(n).padStart(2, '0')
+  const yyyy = d.getFullYear()
+  const mm = pad(d.getMonth() + 1)
+  const dd = pad(d.getDate())
+  const hh = pad(d.getHours())
+  const mi = pad(d.getMinutes())
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`
 }
 
 async function loadContents(sessionId) {

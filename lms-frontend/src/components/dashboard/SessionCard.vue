@@ -12,20 +12,44 @@
       <p class="mt-1 truncate text-xs font-bold text-ink/60">{{ session.subtitle }}</p>
     </div>
 
-    <div class="grid h-10 w-10 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm" aria-label="Open">
+    <button
+      type="button"
+      class="grid h-10 w-10 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+      aria-label="Buka sesi"
+      title="Buka"
+      @click="openSession"
+      :disabled="!canOpen"
+    >
       <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
         <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
-    </div>
+    </button>
   </article>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   session: { type: Object, required: true },
 })
+
+const router = useRouter()
+
+const canOpen = computed(() => Boolean(props.session?.moduleId))
+
+function openSession() {
+  const moduleId = props.session?.moduleId
+  if (!moduleId) return
+  const sessionId = props.session?.sessionId
+
+  router.push({
+    name: 'module-sessions',
+    params: { moduleId },
+    query: sessionId ? { sessionId } : {},
+  })
+}
 
 const dt = computed(() => new Date(props.session.startAt))
 const day = computed(() => dt.value.getDate())

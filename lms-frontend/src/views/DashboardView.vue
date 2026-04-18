@@ -135,21 +135,6 @@
           <SessionCard v-else v-for="s in sessions" :key="s.id" :session="s" />
         </div>
       </div>
-
-      <div class="ink-card p-6">
-        <h2 class="text-lg font-semibold">Aktivitas Terbaru</h2>
-        <div class="mt-5 space-y-4">
-          <ActivityItem
-            v-for="a in activities"
-            :key="a.id"
-            :title="a.title"
-            :subtitle="a.subtitle"
-            :time="a.time"
-          >
-            <component :is="a.icon" />
-          </ActivityItem>
-        </div>
-      </div>
     </section>
 
     <aside class="space-y-6">
@@ -286,6 +271,7 @@ const calendarHighlights = computed(() => {
     .map((d) => d.getDate())
 })
 
+
 function prevMonth() {
   const d = new Date(calendar.value.year, calendar.value.month - 1, 1)
   calendar.value = { year: d.getFullYear(), month: d.getMonth() }
@@ -359,6 +345,8 @@ async function loadUpcomingSessions() {
 
       upcoming.push({
         id: `${moduleId}-${sessionId}`,
+        moduleId,
+        sessionId,
         title: s?.title || `Sesi #${sessionId}`,
         subtitle: `${m.title} - ${formatTime(d)}`,
         startAt: d.toISOString(),
