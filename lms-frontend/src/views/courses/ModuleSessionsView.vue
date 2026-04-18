@@ -237,7 +237,7 @@
             <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
             <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
             <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
-              Sesi ini belum dibuka sesuai jadwal.
+              Sesi ini belum dibuka.
               <span v-if="scheduleOpenAt" class="font-extrabold">Dibuka {{ scheduleHuman }}.</span>
             </p>
             <p v-else-if="contentsStatus === 'error'" class="text-sm font-semibold text-ink/60">
@@ -533,6 +533,12 @@
           <input v-model.trim="createSessionTitle" class="ink-input" placeholder="Contoh: Pertemuan 1" />
         </label>
 
+        <label class="block space-y-2">
+          <span class="text-sm font-semibold">Jadwal Buka (opsional)</span>
+          <input v-model="createSessionOpenAtLocal" type="datetime-local" class="ink-input" />
+          <p class="text-xs font-bold text-ink/50">Jika kosong, sesi berstatus belum dibuka.</p>
+        </label>
+
         <p v-if="createSessionError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
           {{ createSessionError }}
         </p>
@@ -686,6 +692,7 @@ const createSessionOpen = ref(false)
 const createSessionLoading = ref(false)
 const createSessionError = ref('')
 const createSessionTitle = ref('')
+const createSessionOpenAtLocal = ref('')
 
 const menuOpen = ref(false)
 const menuRef = ref(null)
@@ -818,7 +825,7 @@ const scheduleLabel = computed(() => {
   if (!selectedSessionId.value) return '-'
   if (scheduleStatus.value === 'loading') return 'memuat...'
   if (scheduleError.value) return 'gagal memuat'
-  if (!scheduleOpenAt.value) return 'kapan saja'
+  if (!scheduleOpenAt.value) return 'belum dibuka'
   return scheduleHuman.value || scheduleOpenAt.value
 })
 
@@ -1336,6 +1343,7 @@ function selectSession(id) {
 function openCreateSession() {
   createSessionError.value = ''
   createSessionTitle.value = ''
+  createSessionOpenAtLocal.value = ''
   createSessionOpen.value = true
 }
 
@@ -1358,6 +1366,12 @@ async function createSession() {
   try {
     const res = await services.sessions.create(moduleId.value, { title: createSessionTitle.value.trim() })
     const newId = res?.data?.id || res?.id || null
+
+    if (createSessionOpenAtLocal.value && newId) {
+      const d = new Date(createSessionOpenAtLocal.value)
+      if (Number.isNaN(d.getTime())) throw new Error('Format open_at tidak valid. Gunakan format tanggal ISO-8601')
+      await services.sessions.setSchedule(moduleId.value, newId, { open_at: d.toISOString() })
+    }
 
     await loadSessions()
     if (newId) selectSession(newId)
@@ -1432,7 +1446,8 @@ watch(selectedSessionId, async () => {
 
   const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
   const isLocked =
-    isStudent.value && openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+    isStudent.value &&
+    (!scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()))
   if (isLocked) {
     contents.value = []
     contentsError.value = ''
@@ -1447,7 +1462,9 @@ async function reloadSelectedContents() {
   if (!selectedSessionId.value) return
   // Respect schedule lock for students.
   const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
-  const isLocked = isStudent.value && openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+  const isLocked =
+    isStudent.value &&
+    (!scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()))
   if (isLocked) {
     contents.value = []
     contentsError.value = ''
@@ -1523,7 +1540,8 @@ async function saveSchedule() {
     // Refresh lock state after schedule changes.
     if (isStudent.value) {
       const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
-      const isLocked = openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()
+      const isLocked =
+        !scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now())
       if (isLocked) {
         contents.value = []
         contentsError.value = ''

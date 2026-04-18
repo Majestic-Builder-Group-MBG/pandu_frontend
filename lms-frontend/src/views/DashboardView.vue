@@ -86,19 +86,7 @@
         </div>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="ink-card p-6">
-          <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Materi</h2>
-            <span class="ink-chip bg-accent/40">{{ materials.length }}</span>
-          </div>
-          <div class="mt-4 space-y-3">
-            <div v-for="item in materials" :key="item.id" class="rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-              <p class="text-sm font-extrabold">{{ item.title }}</p>
-              <p class="mt-1 text-xs font-bold text-ink/60">{{ item.module }} - {{ item.meta }}</p>
-            </div>
-          </div>
-        </div>
+      <div class="gap-4">
 
         <div class="ink-card p-6">
           <div class="flex items-center justify-between">
