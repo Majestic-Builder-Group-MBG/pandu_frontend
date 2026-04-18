@@ -39,7 +39,7 @@ export class SessionsService {
     if (title) fd.append('title', title)
     if (content_type === 'file' && file) fd.append('file', file)
     if (content_type === 'url' && url) fd.append('url', url)
-    if (content_type === 'text' && text_content) fd.append('text_content', text_content)
+    if (text_content) fd.append('text_content', text_content)
 
     return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/contents`, {
       method: 'POST',

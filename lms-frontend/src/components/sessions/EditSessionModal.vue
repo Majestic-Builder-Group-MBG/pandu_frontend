@@ -42,6 +42,7 @@
               <p class="mt-1 text-xs font-semibold text-ink/60">{{ c.typeLabel }}</p>
               <p v-if="c.type === 'url'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ c.url }}</p>
               <p v-else-if="c.type === 'file'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ c.fileName }}</p>
+              <p v-if="c.text" class="mt-2 whitespace-pre-wrap text-xs font-semibold text-ink/70">{{ c.text }}</p>
             </div>
             <button
               type="button"
@@ -100,12 +101,7 @@
             <input v-model.trim="newUrl" class="ink-input" placeholder="https://www.youtube.com/watch?v=..." />
           </label>
 
-          <label v-else-if="newType === 'text'" class="block space-y-2">
-            <span class="text-sm font-semibold">Isi materi</span>
-            <textarea v-model.trim="newText" class="ink-input min-h-[120px] resize-y" placeholder="Ringkasan materi..." />
-          </label>
-
-          <label v-else class="block space-y-2">
+          <label v-if="newType === 'file'" class="block space-y-2">
             <span class="text-sm font-semibold">Berkas</span>
             <input
               type="file"
@@ -113,6 +109,15 @@
               @change="onPickFile"
             />
             <p v-if="newFileName" class="text-xs font-bold text-ink/50">Selected: {{ newFileName }}</p>
+          </label>
+
+          <label class="block space-y-2">
+            <span class="text-sm font-semibold">{{ newType === 'text' ? 'Isi materi' : 'Text tambahan (opsional)' }}</span>
+            <textarea
+              v-model.trim="newText"
+              class="ink-input min-h-[120px] resize-y"
+              :placeholder="newType === 'text' ? 'Materi inti sesi ini adalah ...' : 'Ringkasan / poin penting / petunjuk (opsional)'"
+            />
           </label>
 
           <button
@@ -134,6 +139,7 @@
                 <p class="mt-1 text-xs font-semibold text-ink/60">{{ pendingTypeLabel(p.content_type) }}</p>
                 <p v-if="p.content_type === 'url'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ p.url }}</p>
                 <p v-else-if="p.content_type === 'file'" class="mt-1 truncate text-xs font-bold text-ink/60">{{ p.file?.name }}</p>
+                <p v-if="p.text_content" class="mt-2 whitespace-pre-wrap text-xs font-semibold text-ink/70">{{ p.text_content }}</p>
               </div>
               <button
                 type="button"
@@ -279,7 +285,7 @@ function queueAdd() {
       content_type: newType.value,
       title: newTitle.value,
       url: newType.value === 'url' ? newUrl.value : undefined,
-      text_content: newType.value === 'text' ? newText.value : undefined,
+      text_content: newText.value || undefined,
       file: newType.value === 'file' ? newFile.value : undefined,
     },
   ]

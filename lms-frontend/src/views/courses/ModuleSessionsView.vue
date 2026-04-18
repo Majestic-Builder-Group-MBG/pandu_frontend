@@ -121,9 +121,9 @@
           </div>
         </div>
 
-        <div class="border-t-2 border-ink bg-cloud lg:border-l-2 lg:border-t-0">
-          <div class="aspect-[16/9] w-full">
-            <img :src="bannerSrc" alt="Module banner" class="h-full w-full object-cover" />
+        <div class="border-t-2 border-ink bg-cloud rounded-b-xl lg:border-l-2 lg:border-t-0 lg:rounded-b-none lg:rounded-r-xl">
+          <div class="aspect-[16/9] w-full rounded-xl">
+            <img :src="bannerSrc" alt="Module banner" class="h-full w-full object-cover rounded-xl" />
           </div>
         </div>
       </div>
@@ -134,7 +134,6 @@
         <div class="ink-card p-6">
           <div class="flex items-center justify-between gap-4">
             <h2 class="text-lg font-semibold">Sesi</h2>
-            <span class="ink-chip bg-accent/40">{{ sessions.length }}</span>
           </div>
 
           <p v-if="sessionsStatus === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat sesi...</p>
@@ -155,63 +154,54 @@
             />
           </div>
         </div>
-
-        <div class="ink-card p-6">
-          <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Tips</p>
-          <p class="mt-2 text-sm font-semibold text-ink/70">Klik sesi untuk melihat materi. Konten bisa berupa file, link, atau teks ringkasan.</p>
+        <div v-if="showTips" class="ink-card px-6 pt-6 pb-4">
+          <div class="flex items-start justify-between gap-4">
+            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Tips</p>
+          </div>
+          <p class="mt-2 pb-2 text-sm font-semibold text-ink/70">Klik sesi untuk melihat materi. Konten bisa berupa file, link, atau teks ringkasan.</p>
+          <div class="flex justify-start">
+            <button
+              type="button"
+              class="h-7 w-9 place-items-center hover:bg-accent/40 hover:rounded-xl"
+              @click="showTips = false"
+              aria-label="Tutup tips"
+              title="Tutup"
+            >
+            <span class="text-sm flex align-center font-semibold text-ink/50">Close</span>
+          </button>
+          
+          </div>
         </div>
       </aside>
 
       <main class="space-y-4">
-        <div class="ink-card p-6">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Sesi Aktif</p>
-              <h2 class="mt-2 text-xl font-semibold">{{ selectedSessionTitle }}</h2>
-              <p class="mt-2 text-sm font-semibold text-ink/60">{{ selectedSessionDesc }}</p>
+        <article class="ink-card overflow-hidden">
+          <div class="flex items-center justify-between gap-4 px-6 pt-6">
+            <h2 class="text-lg font-semibold">Materi</h2>
+          </div>
+
+          <div class="bg-paper px-6 pb-6">
+            <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
+            <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
+            <p v-else-if="contentsStatus === 'error'" class="text-sm font-semibold text-ink/60">
+              Gagal memuat materi: <span class="font-extrabold">{{ contentsError }}</span>
+            </p>
+
+            <div v-else-if="!contents.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
+              <p class="text-sm font-extrabold">Belum ada materi.</p>
+              <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
             </div>
 
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
-                @click="reloadSelectedContents()"
-              >
-                Muat Ulang
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="ink-card p-6">
-          <div class="flex items-center justify-between gap-4">
-            <h3 class="text-lg font-semibold">Materi</h3>
-            <span class="ink-chip bg-accent/40">{{ contents.length }}</span>
-          </div>
-
-          <p v-if="contentsStatus === 'idle'" class="mt-4 text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
-          <p v-else-if="contentsStatus === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat materi...</p>
-          <p v-else-if="contentsStatus === 'error'" class="mt-4 text-sm font-semibold text-ink/60">
-            Gagal memuat materi: <span class="font-extrabold">{{ contentsError }}</span>
-          </p>
-
-          <div v-else-if="!contents.length" class="mt-5 rounded-2xl border-2 border-ink bg-paper p-6 text-center shadow-ink-sm">
-            <p class="text-sm font-extrabold">Belum ada materi.</p>
-            <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
-          </div>
-
-          <div v-else class="mt-5 space-y-3">
-            <article v-for="c in contents" :key="c.id" class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
-              <div class="flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                  <p class="text-sm font-extrabold">{{ c.title }}</p>
-                  <p class="mt-1 text-xs font-semibold text-ink/60">{{ c.typeLabel }}</p>
+            <div v-else class="mt-4 space-y-3">
+              <article v-for="c in contents" :key="c.id" class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <p class="text-sm font-extrabold">{{ c.title }}</p>
+                  </div>
                 </div>
-                <span class="ink-chip bg-accent/40">{{ c.typeBadge }}</span>
-              </div>
 
-              <div class="mt-3">
-                <p v-if="c.type === 'text'" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                <div class="mt-3">
+                  <p v-if="c.type === 'text'" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
 
                 <a
                   v-else-if="c.type === 'url'"
@@ -228,21 +218,26 @@
                   </svg>
                 </a>
 
-                <div v-else-if="c.type === 'file'" class="flex flex-wrap items-center gap-2">
+                <p v-if="c.type === 'file' && c.text" class="mt-3 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                
+                <p v-if="c.type === 'url' && c.text" class="mt-3 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+
+                <div v-if="c.type === 'file'" class="flex flex-wrap items-center gap-2 mt-3">
                   <button
                     type="button"
                     class="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm hover:bg-accent/20"
-                    @click="downloadFile(c)"
-                    :disabled="downloadStatusById[c.id] === 'loading'"
+                    @click="openFilePreview(c)"
+                    :disabled="filePreviewStatus === 'loading' && filePreviewContentId === c.id"
                   >
-                    {{ downloadStatusById[c.id] === 'loading' ? 'Mengunduh...' : 'Unduh Berkas' }}
+                    {{ filePreviewStatus === 'loading' && filePreviewContentId === c.id ? 'Memuat...' : 'View Berkas' }}
                   </button>
-                  <span class="text-xs font-bold text-ink/50">{{ c.fileName }}</span>
                 </div>
+
               </div>
             </article>
           </div>
-        </div>
+          </div>
+        </article>
       </main>
     </div>
 
@@ -275,6 +270,61 @@
       @cancel="closeDeleteModule"
       @confirm="confirmDeleteModule"
     />
+
+    <div
+      v-if="filePreviewOpen"
+      class="fixed inset-0 z-[80] grid place-items-center bg-ink/30 p-4"
+      @click.self="closeFilePreview"
+    >
+      <article class="ink-card w-full max-w-[920px] overflow-hidden">
+        <header class="flex items-start justify-between gap-4 border-b-2 border-ink bg-paper px-6 py-5">
+          <div class="min-w-0">
+            <p class="mt-2 truncate text-base font-extrabold">M A T E R I</p>
+          </div>
+        </header>
+
+        <div class="bg-cloud px-6 py-5">
+          <p v-if="filePreviewStatus === 'loading'" class="text-sm font-semibold text-ink/70">Memuat berkas...</p>
+          <p v-else-if="filePreviewStatus === 'error'" class="text-sm font-semibold text-ink/70">
+            Gagal memuat berkas: <span class="font-extrabold">{{ filePreviewError }}</span>
+          </p>
+
+          <template v-else>
+            <p v-if="filePreviewContent?.text" class="mb-4 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ filePreviewContent.text }}</p>
+
+            <div class="rounded-2xl border-2 border-ink bg-paper p-3 shadow-ink-sm">
+              <img v-if="filePreviewKind === 'image'" :src="filePreviewUrl" alt="Preview" class="mx-auto max-h-[60vh] w-auto rounded-xl" />
+              <video v-else-if="filePreviewKind === 'video'" :src="filePreviewUrl" controls class="w-full rounded-xl" />
+              <iframe
+                v-else
+                :src="filePreviewUrl"
+                class="h-[60vh] w-full rounded-xl bg-paper"
+                title="File preview"
+              />
+            </div>
+          </template>
+        </div>
+
+        <footer class="flex items-center justify-end gap-2 border-t-2 border-ink bg-paper px-6 py-4">
+          <button
+            type="button"
+            class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            @click="closeFilePreview"
+          >
+            Close
+          </button>
+
+          <button
+            v-if="filePreviewStatus === 'success' && filePreviewContent"
+            type="button"
+            class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+            @click="downloadPreviewFile"
+          >
+            Download
+          </button>
+        </footer>
+      </article>
+    </div>
   </section>
 </template>
 
@@ -308,6 +358,8 @@ const sessionsError = ref('')
 
 const selectedSessionId = ref(null)
 
+const showTips = ref(true)
+
 const canManageSessions = computed(() => {
   const r = auth.user?.role
   return r === 'teacher' || r === 'admin'
@@ -335,6 +387,14 @@ const contentsStatus = ref('idle')
 const contentsError = ref('')
 
 const downloadStatusById = ref({})
+
+const filePreviewOpen = ref(false)
+const filePreviewStatus = ref('idle')
+const filePreviewError = ref('')
+const filePreviewContent = ref(null)
+const filePreviewContentId = ref(null)
+const filePreviewUrl = ref('')
+const filePreviewKind = ref('doc')
 
 const moduleItem = computed(() => modules.items.find((m) => Number(m.id) === moduleId.value))
 
@@ -393,6 +453,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', onDocumentKeydown)
   window.removeEventListener('resize', onViewportChange)
   window.removeEventListener('scroll', onViewportChange, true)
+  closeFilePreview()
 })
 
 watch(moduleId, async () => {
@@ -404,6 +465,7 @@ watch(moduleId, async () => {
   deleteModuleOpen.value = false
   moduleActionLoading.value = ''
   feedback.value = { type: '', message: '' }
+  closeFilePreview()
   await loadSessions()
   await ensureModuleBanner()
   await ensureEnrollKey()
@@ -714,6 +776,60 @@ async function downloadFile(content) {
   } finally {
     downloadStatusById.value = { ...downloadStatusById.value, [contentId]: 'idle' }
   }
+}
+
+async function openFilePreview(content) {
+  const contentId = content?.id
+  if (!contentId || !selectedSessionId.value) return
+
+  closeFilePreview()
+  filePreviewOpen.value = true
+  filePreviewStatus.value = 'loading'
+  filePreviewError.value = ''
+  filePreviewContent.value = content
+  filePreviewContentId.value = contentId
+
+  try {
+    const blob = await services.sessions.downloadContentFile(moduleId.value, selectedSessionId.value, contentId)
+    const url = URL.createObjectURL(blob)
+    filePreviewUrl.value = url
+
+    const mime = String(blob?.type || '')
+    if (mime.startsWith('image/')) filePreviewKind.value = 'image'
+    else if (mime.startsWith('video/')) filePreviewKind.value = 'video'
+    else filePreviewKind.value = 'doc'
+
+    filePreviewStatus.value = 'success'
+  } catch (e) {
+    filePreviewStatus.value = 'error'
+    filePreviewError.value = e?.message || 'Gagal memuat berkas'
+  }
+}
+
+function closeFilePreview() {
+  filePreviewOpen.value = false
+  filePreviewStatus.value = 'idle'
+  filePreviewError.value = ''
+  filePreviewContent.value = null
+  filePreviewContentId.value = null
+
+  const url = filePreviewUrl.value
+  filePreviewUrl.value = ''
+  filePreviewKind.value = 'doc'
+  if (url) URL.revokeObjectURL(url)
+}
+
+function downloadPreviewFile() {
+  const c = filePreviewContent.value
+  const url = filePreviewUrl.value
+  if (!c?.id || !url) return
+
+  const a = document.createElement('a')
+  a.href = url
+  a.download = c.fileName || `content-${c.id}`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
 }
 
 function normalizeListResponse(res) {

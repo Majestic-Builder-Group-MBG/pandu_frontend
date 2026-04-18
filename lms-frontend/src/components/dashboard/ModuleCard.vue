@@ -1,5 +1,13 @@
 <template>
-  <article class="ink-card overflow-hidden">
+  <article
+    class="ink-card overflow-hidden"
+    :class="cardClass"
+    :role="isClickable ? 'link' : undefined"
+    :tabindex="isClickable ? 0 : undefined"
+    @click="openModule"
+    @keydown.enter.prevent="openModule"
+    @keydown.space.prevent="openModule"
+  >
     <div class="relative">
       <div class="aspect-[16/9] w-full border-b-2 border-ink bg-cloud">
         <img :src="bannerSrc" alt="Module banner" class="h-full w-full object-cover" />
@@ -21,12 +29,6 @@
           <p class="mt-1 line-clamp-2 text-sm font-semibold text-ink/60">{{ module.desc }}</p>
           <p v-if="metaLine" class="mt-2 truncate text-xs font-bold text-ink/50">{{ metaLine }}</p>
         </div>
-        <div class="grid h-10 w-10 place-items-center rounded-2xl border-2 border-ink bg-paper shadow-ink-sm" aria-label="Module">
-          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-            <path d="M4 6.5L12 3l8 3.5-8 3.5-8-3.5Z" stroke="currentColor" stroke-width="2" />
-            <path d="M4 10.5l8 3.5 8-3.5" stroke="currentColor" stroke-width="2" />
-          </svg>
-        </div>
       </header>
 
       <div v-if="showEnrollKey && module.enrollKey" class="mt-4 flex items-center justify-between gap-2 rounded-2xl border-2 border-ink bg-cloud px-4 py-3">
@@ -37,7 +39,7 @@
         <button
           type="button"
           class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm"
-          @click="copyEnrollKey"
+          @click.stop="copyEnrollKey"
         >
           {{ copied ? 'Copied' : 'Copy' }}
         </button>
@@ -49,44 +51,13 @@
         <span class="ink-chip bg-paper">{{ safeNum(module.quizzes, 0) }} kuis</span>
       </div>
 
-      <div class="mt-5 flex items-center justify-between">
-        <RouterLink
-          v-if="openTo"
-          :to="openTo"
-          class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-        >
-          Buka
-        </RouterLink>
-        <button
-          v-else
-          type="button"
-          class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-        >
-          Buka
-        </button>
-
-        <RouterLink
-          v-if="detailTo"
-          :to="detailTo"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-bold text-ink/70 hover:border-ink hover:bg-accent/30 hover:text-ink"
-        >
-          Detail
-        </RouterLink>
-        <button
-          v-else
-          type="button"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-bold text-ink/70 hover:border-ink hover:bg-accent/30 hover:text-ink"
-        >
-          Detail
-        </button>
-      </div>
     </div>
   </article>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { useRouter } from 'vue-router'
 import defaultBanner from '@/assets/images/module-banner-default.svg'
 import { createServices } from '@/services'
 import { useModuleBannersStore } from '@/stores/moduleBanners'
@@ -100,6 +71,21 @@ const props = defineProps({
   detailTo: { type: String, default: '' },
   showEnrollKey: { type: Boolean, default: false },
 })
+
+const router = useRouter()
+
+const isClickable = computed(() => Boolean(props.openTo))
+
+const cardClass = computed(() => {
+  if (!isClickable.value) return ''
+  // Match the previous "Buka" button's press interaction.
+  return 'cursor-pointer select-none transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cloud'
+})
+
+function openModule() {
+  if (!props.openTo) return
+  router.push(props.openTo)
+}
 
 const hasCustomBanner = computed(() => {
   return Boolean(props.module?.bannerDownloadUrl || props.module?.hasBanner)
