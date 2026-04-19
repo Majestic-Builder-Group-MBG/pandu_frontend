@@ -27,5 +27,30 @@ export const useModuleBannersStore = defineStore('moduleBanners', {
         return ''
       }
     },
+    revokeBanner(moduleId) {
+      const id = Number(moduleId)
+      if (!Number.isFinite(id) || id <= 0) return
+
+      const url = this.urlsById[id]
+      if (url) {
+        URL.revokeObjectURL(url)
+      }
+
+      delete this.urlsById[id]
+      delete this.statusById[id]
+      delete this.errorById[id]
+    },
+    revokeAll() {
+      Object.values(this.urlsById).forEach((url) => {
+        if (url) URL.revokeObjectURL(url)
+      })
+
+      this.urlsById = {}
+      this.statusById = {}
+      this.errorById = {}
+    },
+    clear() {
+      this.revokeAll()
+    },
   },
 })

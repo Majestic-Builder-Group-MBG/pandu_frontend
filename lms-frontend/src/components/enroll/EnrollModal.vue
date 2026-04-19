@@ -48,7 +48,7 @@
 import { ref, watch } from 'vue'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -56,7 +56,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'enrolled'])
 
-const services = createServices()
+const services = getServices()
 
 const key = ref('')
 const isLoading = ref(false)

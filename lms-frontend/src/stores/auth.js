@@ -1,4 +1,6 @@
 import { defineStore } from 'pinia'
+import { useEnrollmentsStore } from '@/stores/enrollments'
+import { useModuleBannersStore } from '@/stores/moduleBanners'
 
 const LS_KEY = 'pandu:lms:auth'
 
@@ -72,6 +74,8 @@ export const useAuthStore = defineStore('auth', {
     async logout({ services } = {}) {
       this.status = 'loading'
       this.error = null
+      const banners = useModuleBannersStore()
+      const enrollments = useEnrollmentsStore()
       try {
         if (services?.auth?.logout && this.token) {
           await services.auth.logout()
@@ -79,6 +83,8 @@ export const useAuthStore = defineStore('auth', {
       } catch {
         // Even if remote logout fails, clear local session.
       } finally {
+        banners.revokeAll()
+        enrollments.clear()
         this.clearSession()
         this.status = 'idle'
       }

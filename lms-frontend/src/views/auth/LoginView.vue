@@ -155,7 +155,7 @@ import { useRouter, RouterLink } from 'vue-router'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import continuousLearning from '@/assets/images/continuous-learning.svg'
 import { useAuthStore } from '@/stores/auth'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const email = ref('')
 const password = ref('')
@@ -167,7 +167,7 @@ const errorMessage = ref('')
 
 const router = useRouter()
 const auth = useAuthStore()
-const services = createServices()
+const services = getServices()
 
 async function onSubmit() {
   errorMessage.value = ''

@@ -5,6 +5,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
 import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
+import RegistrationCodesView from '@/views/admin/RegistrationCodesView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -46,6 +47,12 @@ const router = createRouter({
       meta: { layout: 'default', requiresAuth: true },
     },
     {
+      path: '/registration-codes',
+      name: 'registration-codes',
+      component: RegistrationCodesView,
+      meta: { layout: 'default', requiresAuth: true, roles: ['admin', 'teacher'] },
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundView,
@@ -70,6 +77,13 @@ router.beforeEach((to) => {
 
   if (to.meta?.requiresAuth && !auth.token) {
     return { name: 'login' }
+  }
+
+  if (to.meta?.roles?.length) {
+    const role = auth.user?.role
+    if (!role || !to.meta.roles.includes(role)) {
+      return { name: 'dashboard' }
+    }
   }
 
   return true

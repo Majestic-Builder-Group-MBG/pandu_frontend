@@ -163,10 +163,10 @@ import { RouterLink, useRouter } from 'vue-router'
 
 import BaseButton from '@/components/ui/BaseButton.vue'
 import continuousLearning from '@/assets/images/continuous-learning.svg'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const router = useRouter()
-const services = createServices()
+const services = getServices()
 
 const name = ref('')
 const email = ref('')

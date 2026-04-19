@@ -66,7 +66,7 @@
 import { computed, ref, watch } from 'vue'
 
 import BaseModal from '@/components/ui/BaseModal.vue'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 import { useModulesStore } from '@/stores/modules'
 
 const props = defineProps({
@@ -75,7 +75,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'created'])
 
-const services = createServices()
+const services = getServices()
 const modules = useModulesStore()
 
 const name = ref('')

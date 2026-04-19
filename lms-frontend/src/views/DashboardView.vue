@@ -76,7 +76,32 @@
           </RouterLink>
         </div>
 
-        <div class="mt-5 grid gap-4 md:grid-cols-2">
+        <div v-if="isStudentNoEnrollment" class="mt-5 rounded-2xl border-2 border-ink bg-cloud p-5 shadow-ink-sm">
+          <p class="text-sm font-extrabold">You are not enrolled in any modules yet.</p>
+          <p class="mt-2 text-sm font-semibold text-ink/60">Masukkan enrollment key untuk mulai belajar dari dashboard.</p>
+
+          <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <input
+              v-model.trim="dashboardEnrollKey"
+              class="ink-input"
+              placeholder="Enter enrollment key"
+              :disabled="dashboardEnrollLoading"
+            />
+            <button
+              type="button"
+              class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+              :disabled="dashboardEnrollLoading || !dashboardEnrollKey"
+              @click="enrollFromDashboard"
+            >
+              {{ dashboardEnrollLoading ? 'Memproses...' : 'Enroll' }}
+            </button>
+          </div>
+
+          <p v-if="dashboardEnrollError" class="mt-3 text-xs font-bold text-rose-700">{{ dashboardEnrollError }}</p>
+          <p v-if="dashboardEnrollSuccess" class="mt-3 text-xs font-bold text-emerald-700">{{ dashboardEnrollSuccess }}</p>
+        </div>
+
+        <div v-else class="mt-5 grid gap-4 md:grid-cols-2">
           <ModuleCard v-for="m in visibleModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
         </div>
 
@@ -169,14 +194,16 @@ import { useAuthStore } from '@/stores/auth'
 import StatCard from '@/components/dashboard/StatCard.vue'
 import ModuleCard from '@/components/dashboard/ModuleCard.vue'
 import SessionCard from '@/components/dashboard/SessionCard.vue'
-import ActivityItem from '@/components/dashboard/ActivityItem.vue'
 import MiniCalendar from '@/components/dashboard/MiniCalendar.vue'
+import { useEnrollmentsStore } from '@/stores/enrollments'
 import { useModulesStore } from '@/stores/modules'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
+import { normalizeListResponse } from '@/services/mappers/list'
 
 const auth = useAuthStore()
+const enrollments = useEnrollmentsStore()
 const modules = useModulesStore()
-const services = createServices()
+const services = getServices()
 
 const displayName = computed(() => auth.user?.name || 'User')
 const roleLabel = computed(() => auth.user?.role || 'student')
@@ -195,10 +222,25 @@ const stats = ref({
   newQuizzes: 5,
 })
 
-const visibleModules = computed(() => modules.items.slice(0, 4))
+const dashboardEnrollKey = ref('')
+const dashboardEnrollLoading = ref(false)
+const dashboardEnrollError = ref('')
+const dashboardEnrollSuccess = ref('')
+
+const visibleModules = computed(() => {
+  const isStudent = auth.user?.role === 'student'
+  const source = isStudent
+    ? modules.items.filter((m) => enrollments.moduleIdSet.has(Number(m.id)))
+    : modules.items
+  return source.slice(0, 4)
+})
+const isStudentNoEnrollment = computed(() => auth.user?.role === 'student' && enrollments.moduleIds.length === 0)
 
 onMounted(async () => {
   try {
+    if (auth.user?.role === 'student') {
+      await enrollments.fetchMine({ services, force: true })
+    }
     await modules.fetchAll({ services })
   } catch {
     // error shown in UI
@@ -207,11 +249,26 @@ onMounted(async () => {
   await loadUpcomingSessions()
 })
 
-const materials = ref([
-  { id: 1, title: 'Bab 4 - Matriks (Ringkasan)', module: 'Aljabar Linear Matrix', meta: 'PDF - 12 halaman' },
-  { id: 2, title: 'Lesson 2 - Konteks & Makna', module: 'Semantik Tingkat Lanjut', meta: 'Video - 18 menit' },
-  { id: 3, title: 'Worksheet - Visual Reasoning', module: 'Logik Visual 101', meta: 'Doc - latihan' },
-])
+async function enrollFromDashboard() {
+  if (auth.user?.role !== 'student') return
+  const key = dashboardEnrollKey.value.trim()
+  if (!key) return
+
+  dashboardEnrollError.value = ''
+  dashboardEnrollSuccess.value = ''
+  dashboardEnrollLoading.value = true
+  try {
+    await services.enrollments.enroll({ enroll_key: key })
+    dashboardEnrollSuccess.value = 'Berhasil enroll. Modul kamu sudah diperbarui.'
+    dashboardEnrollKey.value = ''
+    await enrollments.fetchMine({ services, force: true })
+    await modules.fetchAll({ services, force: true })
+  } catch (e) {
+    dashboardEnrollError.value = e?.message || 'Gagal enroll'
+  } finally {
+    dashboardEnrollLoading.value = false
+  }
+}
 
 const quizzes = ref([
   { id: 1, title: 'Quiz 1 - Dasar Matrix', module: 'Aljabar Linear Matrix', questions: 10 },
@@ -222,29 +279,6 @@ const quizzes = ref([
 const upcomingStatus = ref('idle')
 const upcomingError = ref('')
 const sessions = ref([])
-
-const activities = ref([
-  {
-    id: 1,
-    title: 'Quiz Terselesaikan',
-    subtitle: "12 murid selesai 'Calculus II'",
-    time: '2m lalu',
-    icon: {
-      template:
-        '<svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true"><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" stroke="currentColor" stroke-width="2"/><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-    },
-  },
-  {
-    id: 2,
-    title: 'Upload Materi Terbaru',
-    subtitle: "Bab 4 - 'Aljabar Linier Matrix'",
-    time: '1j lalu',
-    icon: {
-      template:
-        '<svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true"><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"/><path d="M6 7h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M8 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-    },
-  },
-])
 
 const calendarEl = ref(null)
 const now = new Date()
@@ -274,72 +308,39 @@ function scrollToCalendar() {
   calendarEl.value?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
 }
 
-function nextDateISO(daysFromNow, hh, mm) {
-  const d = new Date()
-  d.setDate(d.getDate() + daysFromNow)
-  d.setHours(hh, mm, 0, 0)
-  return d.toISOString()
-}
-
 async function loadUpcomingSessions() {
   upcomingStatus.value = 'loading'
   upcomingError.value = ''
   sessions.value = []
 
   try {
-    if (!modules.items.length) {
-      await modules.fetchAll({ services, force: true })
-    }
-
-    const moduleItems = modules.items
-    if (!moduleItems.length) throw new Error('Modul tidak ditemukan')
-
-    // 1) Fetch sessions per module (limited parallelism).
-    const sessionsByModule = await mapLimit(moduleItems, 4, async (m) => {
-      try {
-        const res = await services.sessions.list(m.id)
-        const list = normalizeListResponse(res)
-        return list.map((s) => ({ module: m, session: s }))
-      } catch {
-        return []
-      }
-    })
-
-    const pairs = sessionsByModule.flat()
-
-    // 2) Resolve open_at for each session.
     const now = Date.now()
-    const upcoming = []
+    const res = await services.dashboard.upcomingSessions({ page: 1, perPage: 12 })
+    const list = normalizeListResponse(res)
 
-    await mapLimit(pairs, 8, async ({ module: m, session: s }) => {
-      const moduleId = m.id
-      const sessionId = s?.id
-      if (!moduleId || !sessionId) return
+    const upcoming = list
+      .map((s) => {
+        const moduleId = s?.module_id || s?.moduleId || null
+        const sessionId = s?.session_id || s?.sessionId || null
+        const openAt = s?.open_at || s?.openAt || null
+        if (!moduleId || !sessionId || !openAt) return null
 
-      let openAt = s?.open_at || s?.openAt || null
-      if (!openAt) {
-        try {
-          const res = await services.sessions.getSchedule(moduleId, sessionId)
-          openAt = res?.data?.open_at || res?.data?.openAt || res?.open_at || res?.openAt || null
-        } catch {
-          // If schedule isn't accessible (e.g. 403), skip.
-          return
+        const d = new Date(openAt)
+        if (Number.isNaN(d.getTime())) return null
+        if (d.getTime() <= now) return null
+
+        const canView = Boolean(s?.capabilities?.can_view ?? true)
+        return {
+          id: `${moduleId}-${sessionId}`,
+          moduleId,
+          sessionId,
+          title: s?.title || `Sesi #${sessionId}`,
+          subtitle: `${s?.module_name || s?.moduleName || 'Modul'} - ${formatTime(d)}`,
+          startAt: d.toISOString(),
+          canOpen: canView,
         }
-      }
-
-      const d = new Date(openAt)
-      if (Number.isNaN(d.getTime())) return
-      if (d.getTime() <= now) return
-
-      upcoming.push({
-        id: `${moduleId}-${sessionId}`,
-        moduleId,
-        sessionId,
-        title: s?.title || `Sesi #${sessionId}`,
-        subtitle: `${m.title} - ${formatTime(d)}`,
-        startAt: d.toISOString(),
       })
-    })
+      .filter(Boolean)
 
     upcoming.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
     sessions.value = upcoming.slice(0, 6)
@@ -358,24 +359,4 @@ function formatTime(d) {
   }
 }
 
-function normalizeListResponse(res) {
-  if (Array.isArray(res)) return res
-  if (res && typeof res === 'object') {
-    if (Array.isArray(res.data)) return res.data
-  }
-  return []
-}
-
-async function mapLimit(items, limit, worker) {
-  const out = new Array(items.length)
-  let nextIndex = 0
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (nextIndex < items.length) {
-      const i = nextIndex++
-      out[i] = await worker(items[i], i)
-    }
-  })
-  await Promise.all(workers)
-  return out
-}
 </script>

@@ -27,7 +27,7 @@
       </div>
 
       <div class="mt-5 flex flex-wrap items-center gap-2">
-        <span class="ink-chip bg-accent/60">All ({{ modules.items.length }})</span>
+        <span class="ink-chip bg-accent/60">All ({{ visibleCount }})</span>
 
         <div class="ml-auto flex items-center gap-3">
           <button
@@ -77,9 +77,21 @@
       />
     </div>
 
+    <div v-else-if="isStudentNoEnrollment" class="ink-card p-10 text-center">
+      <p class="text-sm font-extrabold">You are not enrolled in any modules yet.</p>
+      <p class="mt-2 text-sm font-semibold text-ink/60">Masukkan enrollment key untuk bergabung ke modul pertama kamu.</p>
+      <button
+        type="button"
+        class="mt-5 rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+        @click="openEnroll = true"
+      >
+        Enroll
+      </button>
+    </div>
+
     <div v-else class="ink-card p-10 text-center">
-      <p class="text-sm font-extrabold">Tidak ada modul yang cocok.</p>
-      <p class="mt-2 text-sm font-semibold text-ink/60">Coba ganti keyword atau filter level.</p>
+      <p class="text-sm font-extrabold">No modules match your search/filter.</p>
+      <p class="mt-2 text-sm font-semibold text-ink/60">Coba ubah kata kunci pencarian.</p>
       <button
         type="button"
         class="mt-5 rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
@@ -103,12 +115,14 @@ import ModuleCard from '@/components/dashboard/ModuleCard.vue'
 import CreateModuleModal from '@/components/modules/CreateModuleModal.vue'
 import EnrollModal from '@/components/enroll/EnrollModal.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useEnrollmentsStore } from '@/stores/enrollments'
 import { useModulesStore } from '@/stores/modules'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const query = ref('')
 const modules = useModulesStore()
-const services = createServices()
+const enrollments = useEnrollmentsStore()
+const services = getServices()
 const auth = useAuthStore()
 const router = useRouter()
 
@@ -121,12 +135,30 @@ const canCreateModule = computed(() => {
 })
 
 const canEnroll = computed(() => auth.user?.role === 'student')
+const enrolledCount = computed(() => {
+  if (auth.user?.role !== 'student') return modules.items.length
+  const allowedIds = enrollments.moduleIdSet
+  return modules.items.filter((m) => allowedIds.has(Number(m.id))).length
+})
+const isStudentNoEnrollment = computed(() => auth.user?.role === 'student' && enrolledCount.value === 0)
+const visibleCount = computed(() => {
+  const isStudent = auth.user?.role === 'student'
+  if (!isStudent) return modules.items.length
+  return enrolledCount.value
+})
 
 const showEnrollKey = computed(() => canCreateModule.value)
 
 const filteredModules = computed(() => {
+  const isStudent = auth.user?.role === 'student'
+  const allowedIds = enrollments.moduleIdSet
+
+  const source = isStudent
+    ? modules.items.filter((m) => allowedIds.has(Number(m.id)))
+    : modules.items
+
   const q = query.value.trim().toLowerCase()
-  return modules.items.filter((m) => {
+  return source.filter((m) => {
     if (!q) return true
     return `${m.title} ${m.desc} ${m.teacherName || ''}`.toLowerCase().includes(q)
   })
@@ -138,6 +170,12 @@ function reset() {
 
 async function reload() {
   try {
+    if (auth.user?.role === 'student') {
+      await enrollments.fetchMine({ services, force: true })
+      await modules.fetchAll({ services, force: true })
+      return
+    }
+
     await modules.fetchAll({ services, force: true })
   } catch {
     // handled by UI

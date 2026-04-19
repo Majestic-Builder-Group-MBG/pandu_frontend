@@ -37,7 +37,10 @@ const props = defineProps({
 
 const router = useRouter()
 
-const canOpen = computed(() => Boolean(props.session?.moduleId))
+const canOpen = computed(() => {
+  if (typeof props.session?.canOpen === 'boolean') return props.session.canOpen
+  return Boolean(props.session?.moduleId)
+})
 
 function openSession() {
   const moduleId = props.session?.moduleId

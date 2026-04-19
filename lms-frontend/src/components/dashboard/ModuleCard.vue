@@ -52,7 +52,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import defaultBanner from '@/assets/images/module-banner-default.svg'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 import { useModuleBannersStore } from '@/stores/moduleBanners'
 
 const props = defineProps({
@@ -130,7 +130,7 @@ async function copyEnrollKey() {
   }
 }
 
-const services = createServices()
+const services = getServices()
 const banners = useModuleBannersStore()
 
 onMounted(async () => {

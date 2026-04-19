@@ -151,7 +151,7 @@
 
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const props = defineProps({
   moduleId: { type: Number, required: true },
@@ -162,7 +162,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'renamed', 'schedule', 'delete'])
 
-const services = createServices()
+const services = getServices()
 
 const menuOpen = ref(false)
 

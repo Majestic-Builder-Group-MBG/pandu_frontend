@@ -21,6 +21,13 @@
         >
           Courses
         </RouterLink>
+        <RouterLink
+          v-if="canManageCodes"
+          to="/registration-codes"
+          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+        >
+          Codes
+        </RouterLink>
         <button
           v-if="auth.token"
           type="button"
@@ -42,15 +49,17 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const router = useRouter()
 const auth = useAuthStore()
-const services = createServices()
+const services = getServices()
+const canManageCodes = computed(() => auth.user?.role === 'admin' || auth.user?.role === 'teacher')
 
 async function onLogout() {
   await auth.logout({ services })
