@@ -30,10 +30,10 @@ export default defineConfig({
     host: '0.0.0.0',
     https: {
       key: fs.readFileSync(
-        path.resolve(__dirname, '../cert/192.168.1.11+1-key.pem')
+        path.resolve(__dirname, '../cert/192.168.1.19+1-key.pem')
       ),
       cert: fs.readFileSync(
-        path.resolve(__dirname, '../cert/192.168.1.11+1.pem')
+        path.resolve(__dirname, '../cert/192.168.1.19+1.pem')
       ),
     }
   }

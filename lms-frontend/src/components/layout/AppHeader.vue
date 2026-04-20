@@ -22,6 +22,13 @@
           Courses
         </RouterLink>
         <RouterLink
+          to="/quiz"
+          title="Pilih modul dan sesi untuk masuk ke kuis"
+          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+        >
+          Quiz
+        </RouterLink>
+        <RouterLink
           v-if="canManageCodes"
           to="/registration-codes"
           class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"

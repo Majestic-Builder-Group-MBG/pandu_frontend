@@ -172,7 +172,7 @@
           <div class="flex justify-start">
             <button
               type="button"
-              class="h-7 w-9 place-items-center hover:bg-accent/40 hover:rounded-xl"
+              class="h-9 w-9 place-items-center hover:bg-accent/40 hover:rounded-full"
               @click="showTips = false"
               aria-label="Tutup tips"
               title="Tutup"
@@ -221,42 +221,42 @@
                 </svg>
               </button>
 
-              <div
-                v-if="contentsMenuOpen"
-                ref="contentsMenuRef"
-                class="fixed z-[60] rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
-                :style="contentsMenuStyle"
-              >
-                <button
-                  type="button"
-                  class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-extrabold hover:bg-accent/30"
-                  @click="openAddContent"
-                >
-                  <span class="grid h-8 w-8 place-items-center">
-                    <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-                      <path d="M12 5v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                      <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                    </svg>
-                  </span>
-                  Tambah Materi
-                </button>
+               <div
+                 v-if="contentsMenuOpen"
+                 ref="contentsMenuRef"
+                 class="fixed z-[60] rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
+                 :style="contentsMenuStyle"
+               >
+                 <button
+                   type="button"
+                   class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-extrabold hover:bg-accent/30"
+                   @click="openAddContent"
+                 >
+                   <span class="grid h-8 w-8 place-items-center">
+                     <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                       <path d="M12 5v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                       <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                     </svg>
+                   </span>
+                   Tambah Materi
+                 </button>
+               </div>
+             </div>
+           </div>
+
+            <div class="bg-paper px-6 pb-6">
+              <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p class="text-xs font-bold text-ink/60">
+                  Status:
+                  <span class="font-extrabold text-ink/80">{{ scheduleLabel }}</span>
+                </p>
+                <p v-if="canShowReminder && reminderError" class="text-xs font-bold text-rose-700">{{ reminderError }}</p>
               </div>
-            </div>
-          </div>
 
-          <div class="bg-paper px-6 pb-6">
-            <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <p class="text-xs font-bold text-ink/60">
-                Status:
-                <span class="font-extrabold text-ink/80">{{ scheduleLabel }}</span>
-              </p>
-              <p v-if="canShowReminder && reminderError" class="text-xs font-bold text-rose-700">{{ reminderError }}</p>
-            </div>
-
-            <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
-            <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
-            <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
-              Sesi ini belum dibuka.
+              <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
+              <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
+              <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
+                Sesi ini belum dibuka.
               <span v-if="scheduleOpenAt" class="font-extrabold">Dibuka {{ scheduleHuman }}.</span>
             </p>
             <p v-else-if="contentsStatus === 'error'" class="text-sm font-semibold text-ink/60">
@@ -269,13 +269,18 @@
             </div>
 
             <div v-else class="mt-4 space-y-3">
-              <article v-for="c in contents" :key="c.id" class="relative rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
+              <article
+                v-for="c in contentsWithQuiz"
+                :key="c.type === 'quiz' ? `quiz-${selectedSessionId}` : c.id"
+                class="relative rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm"
+              >
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0">
                     <p class="text-sm font-extrabold">{{ c.title }}</p>
+                    <p v-if="c.type === 'quiz'" class="mt-1 text-xs font-bold text-ink/50">Kuis</p>
                   </div>
 
-                  <div v-if="canManageSessions" class="relative">
+                  <div v-if="canManageSessions && c.type !== 'quiz'" class="relative">
                     <button
                       type="button"
                       class="grid h-9 w-9 place-items-center rounded-xl border-2 border-transparent text-ink/70 hover:border-ink hover:bg-accent/20"
@@ -325,6 +330,23 @@
                 </div>
 
                 <div class="mt-3">
+                  <template v-if="c.type === 'quiz'">
+                    <p v-if="c.text" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      <RouterLink
+                        :to="quizLink"
+                        class="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm hover:bg-accent/80"
+                      >
+                        {{ canManageSessions ? 'Kelola Kuis' : 'Buka Kuis' }}
+                        <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+                          <path d="M14 3h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          <path d="M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                      </RouterLink>
+                    </div>
+                  </template>
+
                   <p v-if="c.type === 'text'" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
 
                 <a
@@ -389,7 +411,7 @@
       :subtitle="contentModalMode === 'add' ? 'Tambahkan konten untuk sesi yang dipilih.' : 'Ubah materi yang dipilih.'"
       @close="closeContentModal"
     >
-      <form class="space-y-4" @submit.prevent="saveContent">
+      <form class="space-y-4" @submit.prevent="onSaveContent">
         <div class="flex flex-wrap gap-2">
           <button
             type="button"
@@ -415,9 +437,17 @@
           >
             Berkas
           </button>
+          <button
+            type="button"
+            class="ink-chip"
+            :class="contentType === 'quiz' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
+            @click="contentType = 'quiz'"
+          >
+            Kuis
+          </button>
         </div>
 
-        <label class="block space-y-2">
+        <label v-if="contentType !== 'quiz'" class="block space-y-2">
           <span class="text-sm font-semibold">Judul materi (opsional)</span>
           <input v-model.trim="contentTitle" class="ink-input" placeholder="Judul materi..." />
         </label>
@@ -447,7 +477,7 @@
           </div>
         </label>
 
-        <label class="block space-y-2">
+        <label v-if="contentType !== 'quiz'" class="block space-y-2">
           <span class="text-sm font-semibold">{{ contentType === 'text' ? 'Isi materi' : 'Text tambahan (opsional)' }}</span>
           <textarea
             v-model.trim="contentText"
@@ -455,6 +485,16 @@
             :placeholder="contentType === 'text' ? 'Materi inti sesi ini adalah ...' : 'Ringkasan / poin penting / petunjuk (opsional)'"
           />
         </label>
+
+        <div v-if="contentType === 'quiz'" class="rounded-2xl border-2 border-ink bg-cloud p-5 shadow-ink-sm">
+          <p class="text-sm font-extrabold">Kuis Sesi</p>
+          <p class="mt-2 text-sm font-semibold text-ink/70">
+            Kuis dibuat per sesi. Kamu bisa membuat quiz, tambah soal (MCQ/Essay), lalu publish.
+          </p>
+          <p class="mt-3 text-xs font-bold text-ink/50">
+            Aksi ini tidak menambah materi baru, tapi akan membuka halaman kuis sesi ini.
+          </p>
+        </div>
 
         <p v-if="contentModalError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">{{ contentModalError }}</p>
       </form>
@@ -469,10 +509,20 @@
           Batal
         </button>
         <button
+          v-if="contentType === 'quiz'"
+          type="button"
+          class="rounded-xl border-2 border-ink bg-accent px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+          :disabled="!selectedSessionId"
+          @click="goToQuiz"
+        >
+          {{ canManageSessions ? 'Buat Kuis' : 'Buka Kuis' }}
+        </button>
+        <button
+          v-else
           type="button"
           class="rounded-xl border-2 border-ink bg-accent px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
           :disabled="contentModalLoading"
-          @click="saveContent"
+          @click="onSaveContent"
         >
           {{ contentModalLoading ? 'Menyimpan...' : 'Simpan' }}
         </button>
@@ -696,6 +746,63 @@ const preselectSessionId = computed(() => {
 })
 
 const showTips = ref(true)
+
+const quizLink = computed(() => {
+  if (!selectedSessionId.value) return `/courses/${moduleId.value}`
+  return `/courses/${moduleId.value}/sessions/${selectedSessionId.value}/quiz`
+})
+
+const publishedQuizPreview = ref(null)
+const quizPreviewStatus = ref('idle')
+
+const contentsWithQuiz = computed(() => {
+  if (!publishedQuizPreview.value) return contents.value
+  // Show quiz as a content card at the top.
+  return [publishedQuizPreview.value, ...contents.value]
+})
+
+async function loadPublishedQuizPreview() {
+  publishedQuizPreview.value = null
+  quizPreviewStatus.value = 'loading'
+
+  try {
+    const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
+    const data = res?.data || res
+
+    const isPublished = Boolean(data?.is_published ?? data?.isPublished)
+    if (!isPublished) {
+      quizPreviewStatus.value = 'success'
+      return
+    }
+
+    publishedQuizPreview.value = {
+      id: `quiz-${selectedSessionId.value}`,
+      type: 'quiz',
+      title: data?.title || 'Kuis',
+      text: data?.description || ' ',
+    }
+    quizPreviewStatus.value = 'success'
+  } catch (e) {
+    // 404 = quiz belum dibuat, 403 = belum publish (untuk student). Jangan tampilkan card.
+    quizPreviewStatus.value = 'error'
+    publishedQuizPreview.value = null
+  }
+}
+
+function goToQuiz() {
+  if (!selectedSessionId.value) return
+  closeContentModal()
+  hideContentsMenu()
+  router.push(quizLink.value)
+}
+
+async function onSaveContent() {
+  if (contentType.value === 'quiz') {
+    goToQuiz()
+    return
+  }
+  await saveContent()
+}
 
 const canManageSessions = computed(() => {
   const r = auth.user?.role
@@ -966,6 +1073,8 @@ watch(moduleId, async () => {
   deleteModuleOpen.value = false
   moduleActionLoading.value = ''
   feedback.value = { type: '', message: '' }
+  publishedQuizPreview.value = null
+  quizPreviewStatus.value = 'idle'
   await loadSessions()
   await ensureModuleBanner()
   await ensureEnrollKey()
@@ -1146,6 +1255,8 @@ watch(selectedSessionId, async () => {
   closeContentModal()
   closeDeleteContent()
   closeMediaPreview()
+  publishedQuizPreview.value = null
+  quizPreviewStatus.value = 'idle'
   await loadSchedule(selectedSessionId.value)
   await loadReminder()
 
@@ -1154,7 +1265,7 @@ watch(selectedSessionId, async () => {
     return
   }
 
-  await loadContents()
+  await Promise.all([loadContents(), loadPublishedQuizPreview()])
 })
 
 async function openMediaPreview(content, kind) {

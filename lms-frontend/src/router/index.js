@@ -3,8 +3,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
+import QuizHubView from '@/views/quizzes/QuizHubView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
 import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
+import SessionQuizView from '@/views/courses/SessionQuizView.vue'
 import RegistrationCodesView from '@/views/admin/RegistrationCodesView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -20,6 +22,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { layout: 'default', requiresAuth: true },
+    },
+    {
+      path: '/quiz',
+      name: 'quiz-hub',
+      component: QuizHubView,
       meta: { layout: 'default', requiresAuth: true },
     },
     {
@@ -44,6 +52,12 @@ const router = createRouter({
       path: '/courses/:moduleId',
       name: 'module-sessions',
       component: ModuleSessionsView,
+      meta: { layout: 'default', requiresAuth: true },
+    },
+    {
+      path: '/courses/:moduleId/sessions/:sessionId/quiz',
+      name: 'session-quiz',
+      component: SessionQuizView,
       meta: { layout: 'default', requiresAuth: true },
     },
     {

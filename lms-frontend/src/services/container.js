@@ -3,6 +3,7 @@ import { AuthService } from '@/services/auth/AuthService'
 import { RegisterCodesService } from '@/services/auth/RegisterCodesService'
 import { ModulesService } from '@/services/modules/ModulesService'
 import { SessionsService } from '@/services/sessions/SessionsService'
+import { QuizzesService } from '@/services/quizzes/QuizzesService'
 import { EnrollmentsService } from '@/services/enrollments/EnrollmentsService'
 import { DashboardService } from '@/services/dashboard/DashboardService'
 import { RemindersService } from '@/services/reminders/RemindersService'
@@ -23,6 +24,7 @@ export function getServices() {
     registerCodes: new RegisterCodesService(api),
     modules: new ModulesService(api),
     sessions: new SessionsService(api),
+    quizzes: new QuizzesService(api),
     enrollments: new EnrollmentsService(api),
     dashboard: new DashboardService(api),
     reminders: new RemindersService(api),
