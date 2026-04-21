@@ -168,7 +168,7 @@ const menuOpen = ref(false)
 
 const isRenaming = ref(false)
 const draftTitle = ref('')
-const renameStatus = ref('idle')
+const renameStatus = ref('tanpa batas')
 const renameError = ref('')
 
 watch(

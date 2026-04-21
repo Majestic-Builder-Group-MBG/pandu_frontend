@@ -46,38 +46,7 @@
         </div>
       </div>
 
-      <div class="mt-5 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          class="ink-chip"
-          :class="activeTab === 'overview' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="activeTab = 'overview'"
-        >
-          Overview
-        </button>
-        <button
-          type="button"
-          class="ink-chip"
-          :class="activeTab === 'questions' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="activeTab = 'questions'"
-          :disabled="!quizExists"
-          :title="!quizExists ? 'Buat quiz dulu' : ''"
-        >
-          Soal
-        </button>
-        <button
-          v-if="canManage"
-          type="button"
-          class="ink-chip"
-          :class="activeTab === 'attempts' ? 'bg-accent/60' : 'bg-paper hover:bg-accent/30'"
-          @click="activeTab = 'attempts'"
-          :disabled="!quizExists"
-          :title="!quizExists ? 'Buat quiz dulu' : ''"
-        >
-          Attempts
-        </button>
-
-        <div class="ml-auto flex items-center gap-2">
+      <div class="mt-5 flex flex-wrap items-center justify-end gap-2">
           <span
             v-if="quizExists"
             class="inline-flex items-center gap-2 rounded-xl border-2 px-3 py-1.5 text-xs font-extrabold shadow-ink-sm"
@@ -96,9 +65,48 @@
           >
             {{ publishStatus === 'loading' ? 'Memproses...' : quizIsPublished ? 'Unpublish' : 'Publish' }}
           </button>
-        </div>
       </div>
     </header>
+
+    <nav class="ink-card p-3">
+      <div
+        class="grid w-full gap-1 rounded-2xl border-2 border-ink bg-paper p-1 shadow-ink-sm"
+        :class="canManage ? 'grid-cols-3' : 'grid-cols-1'"
+      >
+        <button
+          type="button"
+          class="w-full rounded-xl px-3 py-2 text-xs font-extrabold transition sm:px-4 sm:text-sm"
+          :class="activeTab === 'overview' ? 'bg-accent text-ink shadow-ink-sm' : 'text-ink/80 hover:bg-accent/20'"
+          @click="activeTab = 'overview'"
+        >
+          Overview
+        </button>
+
+        <button
+          v-if="canManage"
+          type="button"
+          class="w-full rounded-xl px-3 py-2 text-xs font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
+          :class="activeTab === 'questions' ? 'bg-accent text-ink shadow-ink-sm' : 'text-ink/80 hover:bg-accent/20'"
+          @click="activeTab = 'questions'"
+          :disabled="!quizExists"
+          :title="!quizExists ? 'Buat quiz dulu' : ''"
+        >
+          Soal
+        </button>
+
+        <button
+          v-if="canManage"
+          type="button"
+          class="w-full rounded-xl px-3 py-2 text-xs font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
+          :class="activeTab === 'attempts' ? 'bg-accent text-ink shadow-ink-sm' : 'text-ink/80 hover:bg-accent/20'"
+          @click="activeTab = 'attempts'"
+          :disabled="!quizExists"
+          :title="!quizExists ? 'Buat quiz dulu' : ''"
+        >
+          Attempts
+        </button>
+      </div>
+    </nav>
 
     <div v-if="status === 'loading'" class="ink-card p-10 text-center">
       <p class="text-sm font-extrabold">Memuat quiz...</p>
@@ -118,7 +126,6 @@
 
     <div v-else-if="status === 'not-found'" class="ink-card p-10 text-center">
       <p class="text-sm font-extrabold">Quiz belum dibuat.</p>
-      <p class="mt-2 text-sm font-semibold text-ink/60">{{ canManage ? 'Buat quiz untuk sesi ini.' : 'Tunggu quiz dipublish oleh pengampu modul.' }}</p>
       <button
         v-if="canManage"
         type="button"
@@ -248,7 +255,10 @@
                     :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
                     class="flex items-center justify-between gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
                   >
-                    <p class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</p>
+                    <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
+                      <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-16 w-full object-contain" />
+                    </template>
+                    <p v-else class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</p>
                     <span
                       v-if="opt.is_correct === true || opt.isCorrect === true"
                       class="rounded-xl border-2 border-emerald-700 bg-emerald-50 px-2 py-1 text-[11px] font-extrabold text-emerald-900"
@@ -311,7 +321,10 @@
                         :value="opt.id || opt.option_id || opt.optionId"
                         v-model="studentAnswersMcq[String(q.id || q.question_id || q.questionId)]"
                       />
-                      <span class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</span>
+                      <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
+                        <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-20 w-full object-contain" />
+                      </template>
+                      <span v-else class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</span>
                     </label>
                   </div>
 
@@ -342,7 +355,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Soal</p>
-              <p class="mt-2 text-sm font-semibold text-ink/60">Kelola soal MCQ dan essay untuk quiz ini.</p>
+              <p class="mt-2 text-sm font-semibold text-ink/60">Kelola soal pilihan ganda dan essay untuk quiz ini.</p>
             </div>
 
             <button
@@ -407,7 +420,10 @@
                 :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
                 class="flex items-center justify-between gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
               >
-                <p class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</p>
+                <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
+                  <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-16 w-full object-contain" />
+                </template>
+                <p v-else class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</p>
                 <span
                   v-if="canManage && (opt.is_correct === true || opt.isCorrect === true)"
                   class="rounded-xl border-2 border-emerald-700 bg-emerald-50 px-2 py-1 text-[11px] font-extrabold text-emerald-900"
@@ -477,9 +493,74 @@
               <p v-else-if="attemptDetailError" class="mt-3 text-sm font-semibold text-rose-700">{{ attemptDetailError }}</p>
 
               <template v-else>
-                <div class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-4 shadow-ink-sm">
-                  <pre class="overflow-auto text-xs font-semibold text-ink/70">{{ prettyJson(attemptDetail) }}</pre>
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                  <div class="rounded-2xl border-2 border-ink bg-cloud px-4 py-3 shadow-ink-sm">
+                    <p class="text-xs font-bold text-ink/50">Student</p>
+                    <p class="mt-1 text-sm font-extrabold">{{ attemptStudentName }}</p>
+                  </div>
+                  <div class="rounded-2xl border-2 border-ink bg-cloud px-4 py-3 shadow-ink-sm">
+                    <p class="text-xs font-bold text-ink/50">Status</p>
+                    <p class="mt-1 text-sm font-extrabold">{{ attemptStatusLabel }}</p>
+                    <p v-if="attemptSubmittedAt" class="mt-1 text-xs font-bold text-ink/50">Submit: {{ attemptSubmittedAt }}</p>
+                  </div>
+                  <div class="rounded-2xl border-2 border-ink bg-cloud px-4 py-3 shadow-ink-sm">
+                    <p class="text-xs font-bold text-ink/50">Nilai</p>
+                    <p class="mt-1 text-sm font-extrabold">{{ attemptScoreLabel }}</p>
+                    <p v-if="attemptPassingLabel" class="mt-1 text-xs font-bold" :class="attemptPassingLabel === 'Lulus' ? 'text-emerald-800' : 'text-rose-800'">
+                      {{ attemptPassingLabel }}
+                    </p>
+                  </div>
                 </div>
+
+                <div class="mt-4">
+                  <p class="text-sm font-extrabold">Jawaban</p>
+                  <p class="mt-2 text-sm font-semibold text-ink/60">Ringkasan jawaban siswa untuk setiap soal.</p>
+
+                  <div v-if="!attemptAnswerRows.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
+                    <p class="text-sm font-extrabold">Jawaban tidak tersedia.</p>
+                    <p class="mt-2 text-sm font-semibold text-ink/60">Backend tidak mengembalikan daftar answers pada detail attempt.</p>
+                  </div>
+
+                  <div v-else class="mt-4 space-y-3">
+                    <article
+                      v-for="row in attemptAnswerRows"
+                      :key="row.questionId"
+                      class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm"
+                    >
+                      <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="text-sm font-extrabold">{{ row.index }}. {{ row.questionText }}</p>
+                          <p class="mt-1 text-xs font-bold text-ink/50">{{ row.pointsLabel }}</p>
+                        </div>
+
+                        <span
+                          v-if="row.correctnessLabel"
+                          class="shrink-0 rounded-xl border-2 px-2 py-1 text-[11px] font-extrabold"
+                          :class="row.correctnessLabel === 'BENAR' ? 'border-emerald-700 bg-emerald-50 text-emerald-900' : 'border-rose-700 bg-rose-50 text-rose-900'"
+                        >
+                          {{ row.correctnessLabel }}
+                        </span>
+                      </div>
+
+                      <div class="mt-4 grid gap-2">
+                        <div class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm">
+                          <p class="text-xs font-bold text-ink/50">Jawaban siswa</p>
+                          <p class="mt-1 text-sm font-extrabold">{{ row.selectedLabel }}</p>
+                        </div>
+
+                        <div v-if="row.correctLabel" class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm">
+                          <p class="text-xs font-bold text-ink/50">Kunci</p>
+                          <p class="mt-1 text-sm font-extrabold">{{ row.correctLabel }}</p>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <details class="mt-6 rounded-2xl border-2 border-ink bg-cloud p-4 shadow-ink-sm">
+                  <summary class="cursor-pointer text-sm font-extrabold">Raw payload</summary>
+                  <pre class="mt-3 overflow-auto text-xs font-semibold text-ink/70">{{ prettyJson(attemptDetail) }}</pre>
+                </details>
 
                 <div class="mt-6">
                   <p class="text-sm font-extrabold">Review Essay</p>
@@ -547,10 +628,45 @@
       :open="quizModalOpen"
       :title="quizModalMode === 'create' ? 'Buat Quiz' : 'Edit Quiz'"
       kicker="Quiz"
-      :subtitle="quizModalMode === 'create' ? 'Buat quiz untuk sesi ini.' : 'Ubah pengaturan quiz.'"
+      :full-height="true"
+      :show-close="false"
       @close="closeQuizModal"
     >
       <form class="space-y-4" @submit.prevent>
+        <div class="space-y-2">
+          <span class="text-sm font-semibold">Banner (opsional)</span>
+          <label
+            class="flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-ink bg-paper px-4 py-4 hover:bg-accent/10"
+            title="Upload banner (gambar)"
+          >
+            <input ref="quizBannerInputRef" type="file" accept="image/*" class="hidden" @change="onPickQuizBanner" />
+
+            <div class="flex min-w-0 items-center gap-3">
+              <span class="grid h-11 w-11 place-items-center rounded-2xl border-2 border-ink bg-cloud">
+                <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                  <path d="M12 3v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <div class="min-w-0">
+                <p class="text-sm font-extrabold">Upload banner</p>
+                <p class="mt-1 truncate text-xs font-bold text-ink/50">{{ quizDraft.bannerLabel }}</p>
+              </div>
+            </div>
+
+          </label>
+
+          <label
+            v-if="quizModalMode === 'edit'"
+            class="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm"
+            title="Hapus banner saat update"
+          >
+            <input type="checkbox" v-model="quizDraft.remove_banner" />
+            Remove banner
+          </label>
+        </div>
+
         <label class="block space-y-2">
           <span class="text-sm font-semibold">Judul</span>
           <input v-model.trim="quizDraft.title" class="ink-input" placeholder="Quiz Sesi ..." />
@@ -583,12 +699,11 @@
               quizDraft.duration_minutes = null
             }"
           >
-            Idle
+            tanpa batas
           </button>
-          <span class="text-xs font-bold text-ink/50">Idle = tanpa batas waktu.</span>
         </div>
 
-        <div class="grid gap-3 sm:grid-cols-3">
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <label class="block space-y-2">
             <span class="text-sm font-semibold">Durasi (menit)</span>
             <input
@@ -605,35 +720,10 @@
             <span class="text-sm font-semibold">Max attempts</span>
             <input v-model.number="quizDraft.max_attempts" type="number" min="1" max="50" class="ink-input" />
           </label>
-          <label class="block space-y-2">
+          <label class="col-span-2 block space-y-2 sm:col-span-1">
             <span class="text-sm font-semibold">Passing score</span>
             <input v-model.number="quizDraft.passing_score" type="number" min="0" max="100" step="0.01" class="ink-input" />
           </label>
-        </div>
-
-        <div class="space-y-2">
-          <span class="text-sm font-semibold">Banner (opsional)</span>
-          <input ref="quizBannerInputRef" type="file" class="hidden" @change="onPickQuizBanner" />
-
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
-              @click="quizBannerInputRef && quizBannerInputRef.click()"
-            >
-              Choose file
-            </button>
-            <span class="text-xs font-bold text-ink/50">{{ quizDraft.bannerLabel }}</span>
-
-            <label
-              v-if="quizModalMode === 'edit'"
-              class="ml-auto inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm"
-              title="Hapus banner saat update"
-            >
-              <input type="checkbox" v-model="quizDraft.remove_banner" />
-              Remove banner
-            </label>
-          </div>
         </div>
 
         <p v-if="quizModalError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
@@ -663,106 +753,139 @@
 
     <BaseModal
       :open="questionModalOpen"
-      :title="questionModalMode === 'create' ? 'Tambah Soal' : 'Edit Soal'"
-      kicker="Soal"
-      :subtitle="questionModalMode === 'create' ? 'Buat soal baru untuk quiz.' : 'Ubah soal.'"
+      kicker="Tambah Soal"
       @close="closeQuestionModal"
     >
       <form class="space-y-4" @submit.prevent>
-        <div class="rounded-2xl border-2 border-ink bg-cloud p-4 shadow-ink-sm">
-          <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Tipe Soal</p>
-          <p class="mt-1 text-sm font-extrabold">Multiple Choice (MCQ)</p>
-          <p class="mt-1 text-sm font-semibold text-ink/60">Centang opsi yang benar. Minimal 2 opsi dan minimal 1 jawaban benar.</p>
-        </div>
+        <div class="max-h-[78vh] space-y-6 overflow-y-auto pr-1">
+          <template v-for="(draft, qIdx) in questionDrafts" :key="draft.local_id">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Soal {{ qIdx + 1 }}</p>
+              </div>
+              <div class="flex w-full flex-row items-start justify-center gap-4 overflow-x-auto">
+                <div class="shrink-0 w-fit">
+                  <!-- <p class="text-sm font-semibold">Gambar (opsional)</p> -->
+                  <label
+                    class="block aspect-square w-[80px] max-w-full cursor-pointer rounded-2xl border-2 border-ink bg-paper transition hover:bg-accent/20 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  >
+                    <input type="file" accept="image/*" class="hidden" @change="onPickQuestionMedia($event, qIdx)" />
+                    <img
+                      v-if="draft.mediaPreviewUrl"
+                      :src="draft.mediaPreviewUrl"
+                      alt="Selected image preview"
+                      class="h-full w-full rounded-2xl object-contain bg-cloud"
+                    />
+                    <div v-else class="flex h-full w-full flex-col items-center justify-center gap-2 px-4">
+                      <svg viewBox="0 0 24 24" fill="none" class="h-6 w-6 text-ink/70" aria-hidden="true">
+                        <path d="M12 3v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                        <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                      </svg>
+                      <p class="text-xs font-extrabold text-ink/70">Upload</p>
+                    </div>
+                  </label>
+                </div>
 
-        <label class="block space-y-2">
-          <span class="text-sm font-semibold">Question</span>
-          <textarea v-model.trim="questionDraft.question_text" class="ink-input min-h-[110px] resize-y" placeholder="Tulis pertanyaan..." />
-        </label>
+                <div class="min-w-0 flex-1 space-y-4">
+                  <label class="block space-y-2">
+                    <!-- <span class="text-sm font-semibold">Question</span> -->
+                    <textarea v-model.trim="draft.question_text" class="ink-input min-h-[80px] resize-y" placeholder="Tulis pertanyaan..." />
+                  </label>
 
-        <label class="block space-y-2">
-          <span class="text-sm font-semibold">Points</span>
-          <input v-model.number="questionDraft.points" type="number" min="0" class="ink-input" />
-        </label>
+                  <!-- <label class="block space-y-2">
+                    <span class="text-sm font-semibold">Points</span>
+                    <input v-model.number="draft.points" type="number" min="0" class="ink-input" />
+                  </label> -->
+                </div>
+              </div>
 
-        <div class="space-y-3">
-          <p class="text-sm font-semibold">Options</p>
+              <div class="space-y-3">
+                <p class="text-sm font-semibold">Options</p>
 
-          <div class="space-y-2">
-            <div
-              v-for="(opt, idx) in questionDraft.options"
-              :key="idx"
-              class="flex flex-col gap-2 rounded-2xl border-2 border-ink bg-cloud p-4 shadow-ink-sm sm:flex-row sm:items-center"
-            >
-              <input v-model.trim="opt.option_text" class="ink-input flex-1" placeholder="Option text..." />
-              <label class="inline-flex items-center gap-2 text-xs font-extrabold text-ink/70">
-                <input type="checkbox" v-model="opt.is_correct" />
-                Correct
-              </label>
-              <button
-                type="button"
-                class="rounded-xl border-2 border-rose-700 bg-rose-50 px-3 py-2 text-xs font-extrabold text-rose-900 shadow-ink-sm"
-                @click="removeOption(idx)"
-              >
-                Hapus
-              </button>
+                <div class="space-y-2">
+                  <div
+                    v-for="(opt, optIdx) in draft.options"
+                    :key="optIdx"
+                    class="flex items-center gap-3"
+                  >
+                    <input
+                      type="checkbox"
+                      class="h-5 w-5 shrink-0 appearance-none rounded-full border-2 border-ink bg-paper checked:border-emerald-700 checked:bg-emerald-500"
+                      v-model="opt.is_correct"
+                      :aria-label="`Correct option ${optIdx + 1}`"
+                    />
+
+                    <div class="flex flex-1 items-stretch">
+                      <div class="relative flex-1">
+                        <template v-if="isImageDataUrl(opt.option_text)">
+                          <div class="rounded-l-full rounded-r-none border-2 border-ink bg-paper px-4 py-2 shadow-ink-sm">
+                            <img :src="opt.option_text" alt="Option image" class="h-12 w-full object-contain" />
+                          </div>
+                        </template>
+                        <input
+                          v-else
+                          v-model.trim="opt.option_text"
+                          class="ink-input w-full rounded-l-full rounded-r-none"
+                          placeholder="Tulis jawaban..."
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        class="grid w-12 place-items-center rounded-r-full rounded-l-none border-y-2 border-r-2 bg-rose-500/50 hover:bg-rose-500/60"
+                        aria-label="Hapus opsi"
+                        title="Hapus"
+                        @click="removeOption(qIdx, optIdx)"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4 text-rose-900" aria-hidden="true">
+                          <path d="M6 6l12 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                          <path d="M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="text-left text-[11px] font-extrabold text-sky-700 hover:underline"
+                  @click="addOption(qIdx)"
+                >
+                  + Tambah pilihan
+                </button>
+              </div>
             </div>
-          </div>
 
-          <button
-            type="button"
-            class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
-            @click="addOption"
-          >
-            + Tambah Option
-          </button>
-        </div>
+            <hr v-if="qIdx !== questionDrafts.length - 1" class="border-ink/20" />
+          </template>
 
-        <div class="space-y-2">
-          <span class="text-sm font-semibold">Gambar (opsional)</span>
-          <input ref="questionMediaInputRef" type="file" accept="image/*" class="hidden" @change="onPickQuestionMedia" />
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-col items-center gap-2 pt-1">
+            <button
+              v-if="questionModalMode === 'create'"
+              type="button"
+              class="text-xs font-extrabold text-sky-700 hover:underline"
+              :disabled="questionModalLoading"
+              @click="addAnotherQuestionDraft"
+            >
+              + Tambah soal lagi
+            </button>
+
             <button
               type="button"
-              class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
-              @click="questionMediaInputRef && questionMediaInputRef.click()"
+              class="rounded-2xl border-2 border-ink bg-accent px-5 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+              :disabled="questionModalLoading"
+              @click="saveQuestion"
             >
-              Choose image
+              {{ questionModalLoading ? 'Menyimpan...' : (questionModalMode === 'create' ? 'Simpan Semua Soal' : 'Simpan') }}
             </button>
-            <span class="text-xs font-bold text-ink/50">{{ questionDraft.mediaLabel }}</span>
           </div>
 
-          <img
-            v-if="questionMediaPreviewUrl"
-            :src="questionMediaPreviewUrl"
-            alt="Selected image preview"
-            class="w-full max-h-[240px] rounded-2xl border-2 border-ink object-contain bg-cloud shadow-ink-sm"
-          />
+          <p v-if="questionModalError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
+            {{ questionModalError }}
+          </p>
         </div>
-
-        <p v-if="questionModalError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
-          {{ questionModalError }}
-        </p>
       </form>
-
-      <template #actions>
-        <button
-          type="button"
-          class="rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm"
-          :disabled="questionModalLoading"
-          @click="closeQuestionModal"
-        >
-          Batal
-        </button>
-        <button
-          type="button"
-          class="rounded-xl border-2 border-ink bg-accent px-3 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
-          :disabled="questionModalLoading"
-          @click="saveQuestion"
-        >
-          {{ questionModalLoading ? 'Menyimpan...' : 'Simpan' }}
-        </button>
-      </template>
     </BaseModal>
 
     <ConfirmDialog
@@ -838,7 +961,6 @@ let countdownTimer = null
 
 const questionMediaStatusById = reactive({})
 const questionMediaUrlById = reactive({})
-const questionMediaPreviewUrl = ref('')
 
 const studentAnswersMcq = ref({})
 const studentAnswersEssay = ref({})
@@ -914,19 +1036,25 @@ const questionModalOpen = ref(false)
 const questionModalMode = ref('create')
 const questionModalLoading = ref(false)
 const questionModalError = ref('')
-const questionMediaInputRef = ref(null)
 const editingQuestionId = ref(null)
-const questionDraft = ref({
-  question_type: 'mcq',
-  question_text: '',
-  points: 10,
-  options: [
-    { option_text: '', is_correct: true },
-    { option_text: '', is_correct: false },
-  ],
-  mediaFile: null,
-  mediaLabel: 'No file chosen',
-})
+
+const questionDrafts = ref([])
+
+function createQuestionDraft() {
+  return {
+    local_id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    question_type: 'mcq',
+    question_text: '',
+    points: 10,
+    options: [
+      { option_text: '', is_correct: true },
+      { option_text: '', is_correct: false },
+    ],
+    mediaFile: null,
+    mediaPreviewUrl: '',
+    mediaLabel: 'Belum ada gambar',
+  }
+}
 
 const deleteQuestionOpen = ref(false)
 const deleteQuestionLoading = ref(false)
@@ -955,7 +1083,7 @@ onBeforeUnmount(() => {
   clearCountdown()
   revokeBannerUrl()
   revokeAllQuestionMedia()
-  revokeQuestionMediaPreview()
+  revokeAllDraftPreviews()
 })
 
 watch([moduleId, sessionId], async () => {
@@ -977,7 +1105,7 @@ watch([moduleId, sessionId], async () => {
   attemptId.value = null
   remainingSeconds.value = null
   revokeAllQuestionMedia()
-  revokeQuestionMediaPreview()
+  revokeAllDraftPreviews()
   await loadQuiz({ force: true })
 })
 
@@ -1034,9 +1162,13 @@ function revokeAllQuestionMedia() {
   })
 }
 
-function revokeQuestionMediaPreview() {
-  if (questionMediaPreviewUrl.value) URL.revokeObjectURL(questionMediaPreviewUrl.value)
-  questionMediaPreviewUrl.value = ''
+function revokeAllDraftPreviews() {
+  for (const d of questionDrafts.value) {
+    const url = d?.mediaPreviewUrl
+    if (url && typeof url === 'string' && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url)
+    }
+  }
 }
 
 function onBack() {
@@ -1137,6 +1269,12 @@ function closeQuizModal() {
 
 function onPickQuizBanner(e) {
   const file = e?.target?.files?.[0]
+  if (file && !String(file.type || '').toLowerCase().startsWith('image/')) {
+    quizDraft.value.bannerFile = null
+    quizDraft.value.bannerLabel = 'File harus gambar'
+    quizModalError.value = 'Banner hanya mendukung format gambar.'
+    return
+  }
   quizDraft.value.bannerFile = file || null
   quizDraft.value.bannerLabel = file?.name || 'No file chosen'
 }
@@ -1217,7 +1355,8 @@ function openQuestionModal(mode, q) {
   questionModalLoading.value = false
   editingQuestionId.value = null
 
-  revokeQuestionMediaPreview()
+  revokeAllDraftPreviews()
+  questionDrafts.value = []
 
   if (mode === 'edit' && q) {
     const qid = q.id || q.question_id || q.questionId
@@ -1228,36 +1367,23 @@ function openQuestionModal(mode, q) {
       error.value = 'Saat ini UI hanya mendukung soal MCQ.'
       return
     }
+
     const opts = Array.isArray(q.options) ? q.options : []
-    questionDraft.value = {
-      question_type: 'mcq',
-      question_text: q.question_text || q.questionText || '',
-      points: Number(q.points ?? 0),
-      options: (opts.length
-        ? opts.map((o) => ({
-            option_text: o.option_text || o.optionText || '',
-            is_correct: Boolean(o.is_correct ?? o.isCorrect),
-          }))
-        : [
-            { option_text: '', is_correct: true },
-            { option_text: '', is_correct: false },
-          ]
-      ),
-      mediaFile: null,
-      mediaLabel: 'No file chosen',
-    }
+    const d = createQuestionDraft()
+    d.question_text = q.question_text || q.questionText || ''
+    d.points = Number(q.points ?? 0)
+    d.options = (opts.length
+      ? opts.map((o) => ({
+          option_text: o.option_text || o.optionText || '',
+          is_correct: Boolean(o.is_correct ?? o.isCorrect),
+        }))
+      : [
+          { option_text: '', is_correct: true },
+          { option_text: '', is_correct: false },
+        ])
+    questionDrafts.value = [d]
   } else {
-    questionDraft.value = {
-      question_type: 'mcq',
-      question_text: '',
-      points: 10,
-      options: [
-        { option_text: '', is_correct: true },
-        { option_text: '', is_correct: false },
-      ],
-      mediaFile: null,
-      mediaLabel: 'No file chosen',
-    }
+    questionDrafts.value = [createQuestionDraft()]
   }
 
   questionModalOpen.value = true
@@ -1265,39 +1391,54 @@ function openQuestionModal(mode, q) {
 
 function closeQuestionModal() {
   questionModalOpen.value = false
-  revokeQuestionMediaPreview()
+  revokeAllDraftPreviews()
+  questionDrafts.value = []
+  editingQuestionId.value = null
 }
 
 function goToQuestions() {
   activeTab.value = 'questions'
 }
 
-function addOption() {
-  questionDraft.value.options.push({ option_text: '', is_correct: false })
+function addOption(qIdx) {
+  const d = questionDrafts.value[qIdx]
+  if (!d) return
+  d.options.push({ option_text: '', is_correct: false })
 }
 
-function removeOption(idx) {
-  questionDraft.value.options.splice(idx, 1)
+function removeOption(qIdx, optIdx) {
+  const d = questionDrafts.value[qIdx]
+  if (!d) return
+  d.options.splice(optIdx, 1)
 }
 
-function onPickQuestionMedia(e) {
+function onPickQuestionMedia(e, qIdx) {
+  const d = questionDrafts.value[qIdx]
+  if (!d) return
+
   const file = e?.target?.files?.[0]
-  questionDraft.value.mediaFile = file || null
-  questionDraft.value.mediaLabel = file?.name || 'No file chosen'
-
-  revokeQuestionMediaPreview()
-  if (file) {
-    questionMediaPreviewUrl.value = URL.createObjectURL(file)
+  if (!file) return
+  if (!String(file.type || '').toLowerCase().startsWith('image/')) {
+    questionModalError.value = 'File harus gambar.'
+    return
   }
+
+  if (d.mediaPreviewUrl && String(d.mediaPreviewUrl).startsWith('blob:')) {
+    URL.revokeObjectURL(d.mediaPreviewUrl)
+  }
+
+  d.mediaFile = file
+  d.mediaLabel = file.name || 'Gambar'
+  d.mediaPreviewUrl = URL.createObjectURL(file)
 }
 
-function validateQuestionDraft() {
+function validateQuestionDraft(d) {
   const type = 'mcq'
-  const text = String(questionDraft.value.question_text || '').trim()
+  const text = String(d?.question_text || '').trim()
   if (!text) return 'Question wajib diisi.'
 
   if (type === 'mcq') {
-    const opts = (questionDraft.value.options || [])
+    const opts = (d?.options || [])
       .map((o) => ({ option_text: String(o.option_text || '').trim(), is_correct: Boolean(o.is_correct) }))
       .filter((o) => o.option_text)
 
@@ -1309,41 +1450,69 @@ function validateQuestionDraft() {
 }
 
 async function saveQuestion() {
-  const validationError = validateQuestionDraft()
-  if (validationError) {
-    questionModalError.value = validationError
-    return
-  }
-
   questionModalLoading.value = true
   questionModalError.value = ''
   try {
-    const type = 'mcq'
-    const payload = {
-      question_type: type,
-      question_text: String(questionDraft.value.question_text || '').trim(),
-      points: questionDraft.value.points,
-      options: type === 'mcq'
-        ? (questionDraft.value.options || [])
+    if (questionModalMode.value === 'edit') {
+      const d = questionDrafts.value[0]
+      const validationError = validateQuestionDraft(d)
+      if (validationError) throw new Error(validationError)
+      if (!editingQuestionId.value) throw new Error('Soal tidak valid')
+
+      const payload = {
+        question_type: 'mcq',
+        question_text: String(d.question_text || '').trim(),
+        points: d.points,
+        options: (d.options || [])
+          .map((o) => ({ option_text: String(o.option_text || '').trim(), is_correct: Boolean(o.is_correct) }))
+          .filter((o) => o.option_text),
+        media: d.mediaFile || undefined,
+      }
+
+      const res = await services.quizzes.updateQuestion(moduleId.value, sessionId.value, editingQuestionId.value, payload)
+      if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan soal')
+    } else {
+      // Create mode: batch add all drafts.
+      for (let i = 0; i < questionDrafts.value.length; i++) {
+        const d = questionDrafts.value[i]
+        const validationError = validateQuestionDraft(d)
+        if (validationError) throw new Error(`Soal #${i + 1}: ${validationError}`)
+
+        const payload = {
+          question_type: 'mcq',
+          question_text: String(d.question_text || '').trim(),
+          points: d.points,
+          options: (d.options || [])
             .map((o) => ({ option_text: String(o.option_text || '').trim(), is_correct: Boolean(o.is_correct) }))
-            .filter((o) => o.option_text)
-        : undefined,
-      media: questionDraft.value.mediaFile || undefined,
+            .filter((o) => o.option_text),
+          media: d.mediaFile || undefined,
+        }
+
+        const res = await services.quizzes.addQuestion(moduleId.value, sessionId.value, payload)
+        if (res?.success === false) throw new Error(res?.message || `Gagal menyimpan soal #${i + 1}`)
+      }
     }
 
-    const res = questionModalMode.value === 'create'
-      ? await services.quizzes.addQuestion(moduleId.value, sessionId.value, payload)
-      : await services.quizzes.updateQuestion(moduleId.value, sessionId.value, editingQuestionId.value, payload)
-
-    if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan soal')
-
-    questionModalOpen.value = false
+    closeQuestionModal()
     await loadQuiz({ force: true })
   } catch (e) {
     questionModalError.value = e?.message || 'Gagal menyimpan soal'
   } finally {
     questionModalLoading.value = false
   }
+}
+
+function addAnotherQuestionDraft() {
+  if (questionModalMode.value !== 'create') return
+  const last = questionDrafts.value[questionDrafts.value.length - 1]
+  const validationError = validateQuestionDraft(last)
+  if (validationError) {
+    questionModalError.value = validationError
+    return
+  }
+
+  questionModalError.value = ''
+  questionDrafts.value.push(createQuestionDraft())
 }
 
 function confirmDeleteQuestion(q) {
@@ -1521,6 +1690,216 @@ const essayReviewItems = computed(() => {
     .filter((a) => a.question_id)
 })
 
+function pickFirst(obj, keys) {
+  for (const k of keys) {
+    const v = obj?.[k]
+    if (v != null && v !== '') return v
+  }
+  return null
+}
+
+function parseIsoToLocal(isoLike) {
+  const raw = String(isoLike || '').trim()
+  if (!raw) return ''
+  const d = new Date(raw)
+  if (Number.isNaN(d.getTime())) return raw
+  return d.toLocaleString()
+}
+
+const attemptStudentName = computed(() => {
+  const d = attemptDetail.value
+  if (!d) return '-'
+  return (
+    d.student_name ||
+    d.studentName ||
+    d.user_name ||
+    d.userName ||
+    d.user?.name ||
+    d.student?.name ||
+    '-'
+  )
+})
+
+const attemptSubmittedAt = computed(() => {
+  const d = attemptDetail.value
+  const v = pickFirst(d, ['submitted_at', 'submittedAt', 'finished_at', 'finishedAt'])
+  return v ? parseIsoToLocal(v) : ''
+})
+
+const attemptStatusLabel = computed(() => {
+  const d = attemptDetail.value
+  const status = String(pickFirst(d, ['status', 'state']) || '').toLowerCase()
+  if (status.includes('submit') || status.includes('finish')) return 'Submitted'
+  if (status.includes('start') || status.includes('progress')) return 'In progress'
+  if (attemptSubmittedAt.value) return 'Submitted'
+  return 'Unknown'
+})
+
+function normalizeAttemptAnswers(detail) {
+  if (!detail) return []
+  const candidates = [
+    detail.answers,
+    detail.data?.answers,
+    detail.attempt?.answers,
+    detail.data?.attempt?.answers,
+  ]
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c
+  }
+  return []
+}
+
+function findQuestionById(qid) {
+  const id = Number(qid)
+  if (!Number.isFinite(id)) return null
+  return questions.value.find((q) => Number(q.id || q.question_id || q.questionId) === id) || null
+}
+
+function findOptionById(q, optionId) {
+  if (!q) return null
+  const id = Number(optionId)
+  if (!Number.isFinite(id)) return null
+  const opts = Array.isArray(q.options) ? q.options : []
+  return opts.find((o) => Number(o.id || o.option_id || o.optionId) === id) || null
+}
+
+function findCorrectOption(q) {
+  if (!q) return null
+  const opts = Array.isArray(q.options) ? q.options : []
+  return opts.find((o) => Boolean(o.is_correct ?? o.isCorrect)) || null
+}
+
+const attemptAnswerRows = computed(() => {
+  const d = attemptDetail.value
+  if (!d) return []
+
+  const raw = normalizeAttemptAnswers(d)
+  return raw
+    .map((a, idx) => {
+      const questionId = a.question_id || a.questionId || a.id
+      const q = findQuestionById(questionId)
+      const questionText =
+        q?.question_text || q?.questionText || a.question_text || a.questionText || `Question #${questionId || idx + 1}`
+
+      const selectedOptionId = pickFirst(a, ['selected_option_id', 'selectedOptionId', 'option_id', 'optionId'])
+      const selectedOpt = selectedOptionId != null ? findOptionById(q, selectedOptionId) : null
+      const correctOpt = findCorrectOption(q)
+
+      const selectedLabel =
+        selectedOpt?.option_text ||
+        selectedOpt?.optionText ||
+        a.selected_option_text ||
+        a.selectedOptionText ||
+        (selectedOptionId != null ? `Option #${selectedOptionId}` : 'Tidak menjawab')
+
+      const correctLabel =
+        correctOpt?.option_text ||
+        correctOpt?.optionText ||
+        (correctOpt ? '' : '')
+
+      const isCorrectRaw = pickFirst(a, ['is_correct', 'isCorrect'])
+      const isCorrect =
+        typeof isCorrectRaw === 'boolean'
+          ? isCorrectRaw
+          : selectedOpt
+            ? Boolean(selectedOpt.is_correct ?? selectedOpt.isCorrect)
+            : null
+
+      const possiblePoints = Number(q?.points ?? a.points ?? a.points_possible ?? a.pointsPossible ?? NaN)
+      const awardedRaw = pickFirst(a, ['awarded_points', 'awardedPoints', 'points_awarded', 'pointsAwarded', 'earned_points', 'earnedPoints'])
+      const awardedPoints = Number.isFinite(Number(awardedRaw))
+        ? Number(awardedRaw)
+        : (Number.isFinite(possiblePoints) && isCorrect === true)
+          ? possiblePoints
+          : (Number.isFinite(possiblePoints) && isCorrect === false)
+            ? 0
+            : NaN
+
+      const correctnessLabel = isCorrect == null ? '' : isCorrect ? 'BENAR' : 'SALAH'
+
+      const pointsLabel = Number.isFinite(possiblePoints)
+        ? Number.isFinite(awardedPoints)
+          ? `${awardedPoints}/${possiblePoints} poin`
+          : `${possiblePoints} poin`
+        : ''
+
+      return {
+        index: idx + 1,
+        questionId: String(questionId || idx),
+        questionText,
+        selectedLabel,
+        correctLabel,
+        correctnessLabel,
+        possiblePoints,
+        awardedPoints,
+        pointsLabel,
+      }
+    })
+})
+
+const attemptComputedTotals = computed(() => {
+  const rows = attemptAnswerRows.value
+  let possible = 0
+  let awarded = 0
+  let hasPossible = false
+  let hasAwarded = false
+
+  for (const r of rows) {
+    if (Number.isFinite(r.possiblePoints)) {
+      possible += r.possiblePoints
+      hasPossible = true
+    }
+    if (Number.isFinite(r.awardedPoints)) {
+      awarded += r.awardedPoints
+      hasAwarded = true
+    }
+  }
+
+  return {
+    possible: hasPossible ? possible : NaN,
+    awarded: hasAwarded ? awarded : NaN,
+  }
+})
+
+const attemptScoreLabel = computed(() => {
+  const d = attemptDetail.value
+  if (!d) return '-'
+
+  const percentRaw = pickFirst(d, ['score', 'score_percent', 'scorePercent', 'percentage', 'percent'])
+  const percent = Number.isFinite(Number(percentRaw)) ? Number(percentRaw) : NaN
+  if (Number.isFinite(percent)) return `${percent}`
+
+  const totalRaw = pickFirst(d, ['total_points', 'totalPoints', 'earned_points', 'earnedPoints'])
+  const total = Number.isFinite(Number(totalRaw)) ? Number(totalRaw) : NaN
+  const maxRaw = pickFirst(d, ['max_points', 'maxPoints', 'total_possible_points', 'totalPossiblePoints'])
+  const max = Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : NaN
+  if (Number.isFinite(total) && Number.isFinite(max)) return `${total}/${max}`
+
+  const { awarded, possible } = attemptComputedTotals.value
+  if (Number.isFinite(awarded) && Number.isFinite(possible)) return `${awarded}/${possible}`
+
+  return '-'
+})
+
+const attemptPassingLabel = computed(() => {
+  const pass = Number(quiz.value?.passing_score ?? quiz.value?.passingScore)
+  if (!Number.isFinite(pass)) return ''
+
+  const d = attemptDetail.value
+  const percentRaw = pickFirst(d, ['score', 'score_percent', 'scorePercent', 'percentage', 'percent'])
+  const percent = Number.isFinite(Number(percentRaw)) ? Number(percentRaw) : NaN
+  if (Number.isFinite(percent)) return percent >= pass ? 'Lulus' : 'Tidak lulus'
+
+  // If no percentage, try compute from totals.
+  const { awarded, possible } = attemptComputedTotals.value
+  if (Number.isFinite(awarded) && Number.isFinite(possible) && possible > 0) {
+    const p = (awarded / possible) * 100
+    return p >= pass ? 'Lulus' : 'Tidak lulus'
+  }
+
+  return ''
+})
+
 async function saveReview() {
   reviewStatus.value = 'loading'
   reviewError.value = ''
@@ -1553,7 +1932,50 @@ function prettyJson(obj) {
   }
 }
 
+function isImageDataUrl(value) {
+  const s = String(value || '')
+  return s.startsWith('data:image/')
+}
+
+function onPickOptionImage(e, idx) {
+  const file = e?.target?.files?.[0]
+  if (!file) return
+
+  // Backward compatible: when UI doesn't wire option image, just ignore.
+  if (!String(file.type || '').toLowerCase().startsWith('image/')) {
+    questionModalError.value = 'File opsi harus gambar.'
+    return
+  }
+
+  if (file.size > 1_500_000) {
+    questionModalError.value = 'Ukuran gambar opsi terlalu besar (maks 1.5MB).'
+    return
+  }
+
+  const d = questionDrafts.value[0]
+  if (!d?.options?.[idx]) return
+
+  const reader = new FileReader()
+  reader.onload = () => {
+    const url = String(reader.result || '')
+    if (!url.startsWith('data:image/')) {
+      questionModalError.value = 'Gagal membaca gambar opsi.'
+      return
+    }
+    d.options[idx].option_text = url
+  }
+  reader.onerror = () => {
+    questionModalError.value = 'Gagal membaca gambar opsi.'
+  }
+  reader.readAsDataURL(file)
+}
+
 watch(activeTab, async (tab) => {
+  if (tab === 'questions' && !canManage.value) {
+    activeTab.value = 'overview'
+    return
+  }
+
   if (tab === 'attempts' && canManage.value && quizExists.value) {
     await loadAttempts({ force: true })
   }
