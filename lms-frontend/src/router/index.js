@@ -4,8 +4,12 @@ import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
 import LandingView from '@/views/marketing/LandingView.vue'
+import FeaturesView from '@/views/marketing/FeaturesView.vue'
 import AboutView from '@/views/marketing/AboutView.vue'
 import ContactView from '@/views/marketing/ContactView.vue'
+import PrivacyView from '@/views/marketing/PrivacyView.vue'
+import TermsView from '@/views/marketing/TermsView.vue'
+import CookiesView from '@/views/marketing/CookiesView.vue'
 import QuizHubView from '@/views/quizzes/QuizHubView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
 import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
@@ -24,6 +28,12 @@ const router = createRouter({
       meta: { layout: 'marketing' },
     },
     {
+      path: '/features',
+      name: 'features',
+      component: FeaturesView,
+      meta: { layout: 'marketing' },
+    },
+    {
       path: '/about',
       name: 'about',
       component: AboutView,
@@ -33,6 +43,24 @@ const router = createRouter({
       path: '/contact',
       name: 'contact',
       component: ContactView,
+      meta: { layout: 'marketing' },
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: PrivacyView,
+      meta: { layout: 'marketing' },
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: TermsView,
+      meta: { layout: 'marketing' },
+    },
+    {
+      path: '/cookies',
+      name: 'cookies',
+      component: CookiesView,
       meta: { layout: 'marketing' },
     },
     {

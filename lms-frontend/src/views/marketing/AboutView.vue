@@ -5,10 +5,10 @@
     <main class="mx-auto w-full max-w-6xl px-4 py-10">
       <section class="ink-card bg-paper-grid p-8">
         <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">About</p>
-        <h1 class="mt-2 text-4xl font-extrabold">Scholarly, versi tegas dari LMS.</h1>
+        <h1 class="mt-2 text-4xl font-extrabold">Pandu, LMS yang ngasih alur belajar yang jelas.</h1>
         <p class="mt-4 max-w-3xl text-sm font-semibold text-ink/70">
-          Halaman ini dummy untuk sekarang. Intinya: pengalaman belajar harus minim distraksi,
-          penilaian harus konsisten, dan akses quiz harus jelas sesuai jadwal sesi.
+          Project ini dibuat sebagai MVP untuk demo lomba. Fokusnya bukan hanya fitur, tapi juga keterbacaan UI,
+          konsistensi penilaian, dan flow yang gampang dipresentasikan ke juri.
         </p>
 
         <div class="mt-7 grid gap-4 lg:grid-cols-3">
@@ -32,7 +32,7 @@
 
       <section class="mt-8 grid gap-4 lg:grid-cols-2">
         <article class="ink-card p-6">
-          <h2 class="text-2xl font-extrabold">FAQ (dummy)</h2>
+          <h2 class="text-2xl font-extrabold">FAQ (ringkas)</h2>
           <div class="mt-4 space-y-3">
             <details class="rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
               <summary class="cursor-pointer text-sm font-extrabold">Kenapa dominan kuning?</summary>
@@ -50,7 +50,7 @@
         </article>
 
         <article class="ink-card bg-accent/25 p-6">
-          <h2 class="text-2xl font-extrabold">Roadmap (ringkas)</h2>
+          <h2 class="text-2xl font-extrabold">Roadmap (setelah MVP)</h2>
           <ul class="mt-4 list-disc pl-5 text-sm font-semibold text-ink/70">
             <li>Export report nilai per modul</li>
             <li>Template quiz & bank soal</li>

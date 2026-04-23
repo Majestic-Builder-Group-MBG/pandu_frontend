@@ -8,7 +8,8 @@
           <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Contact</p>
           <h1 class="mt-2 text-4xl font-extrabold">Kontak & report</h1>
           <p class="mt-4 text-sm font-semibold text-ink/70">
-            Kirim bug, saran fitur, atau request improvement. Konten dummy dulu, tapi UI-nya sudah siap.
+            Kirim bug, saran fitur, atau request improvement. Untuk demo lomba, kamu bisa pakai form ini sebagai
+            bukti bahwa alur feedback sudah dipikirkan.
           </p>
 
           <div class="mt-6 grid gap-3">

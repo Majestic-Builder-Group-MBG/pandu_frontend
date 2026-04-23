@@ -7,99 +7,61 @@
         <div class="absolute inset-0 opacity-[0.9]">
           <div class="h-full w-full bg-paper-grid" />
         </div>
-        <div class="pointer-events-none absolute -left-10 top-16 hidden h-44 w-44 rotate-12 rounded-3xl border-2 border-ink bg-accent/40 shadow-ink sm:block" />
-        <div class="pointer-events-none absolute -right-10 top-10 hidden h-52 w-52 -rotate-6 rounded-3xl border-2 border-ink bg-ocean-50 shadow-ink sm:block" />
-        <div class="pointer-events-none absolute right-10 top-28 hidden h-12 w-12 rotate-12 rounded-2xl border-2 border-ink bg-ocean-500 shadow-ink-sm sm:block" />
+        <div class="pointer-events-none absolute -right-24 top-24 hidden h-72 w-72 rotate-6 rounded-[3rem] border-2 border-ink bg-accent/25 shadow-ink sm:block" />
 
-        <div class="relative mx-auto flex min-h-dvh w-full max-w-6xl items-center px-4 py-14 sm:py-18">
+        <div class="relative mx-auto flex min-h-dvh w-full max-w-6xl items-center px-4 pb-16 pt-28 sm:pt-32">
           <div class="grid items-center gap-10 lg:grid-cols-2">
             <div class="animate-rise">
-              <p class="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-xs font-extrabold shadow-ink-sm">
-                <span class="h-2 w-2 rounded-full bg-ocean-500" />
-                Neo-brutal LMS untuk kelas modern
-              </p>
-              <h1 class="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl">
-                Belajar rapi, quiz cepat, penilaian jelas.
+
+              <h1 class="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl">
+                Belajar
+                <span class="underline decoration-accent decoration-[12px] underline-offset-[8px]">lebih rapi</span>,
+                quiz cepat, penilaian jelas.
               </h1>
-              <p class="mt-4 max-w-xl text-base font-semibold text-ink/70">
-                Scholarly menyatukan modul, sesi, kuis, AI generate soal dari PDF, dan leaderboard yang bisa dipublikasi.
-                Semua tetap terasa ringan dan tegas.
+
+              <p class="mt-5 max-w-xl text-base font-semibold text-ink/70">
+                Pandu menyatukan modul, sesi, kuis, AI generate dari PDF, dan leaderboard.
+                Fokus ke flow yang gampang dipahami dan enak dipresentasikan.
               </p>
 
-              <div class="mt-6 flex flex-wrap items-center gap-2">
+              <div class="mt-7 flex flex-wrap items-center gap-4">
                 <RouterLink
-                  v-if="!auth.token"
-                  to="/register"
-                  class="rounded-xl border-2 border-ink bg-accent px-5 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                >
-                  Coba Gratis
-                </RouterLink>
-                <RouterLink
-                  v-else
+                  v-if="auth.token"
                   to="/dashboard"
-                  class="rounded-xl border-2 border-ink bg-accent px-5 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  class="rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                 >
                   Buka Dashboard
                 </RouterLink>
 
-                <a
-                  href="#features"
-                  class="rounded-xl border-2 border-ink bg-paper px-5 py-3 text-sm font-extrabold shadow-ink-sm"
+                <RouterLink
+                  v-else
+                  to="/register"
+                  class="rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                 >
-                  Lihat Fitur
-                </a>
+                  Mulai Sekarang
+                </RouterLink>
+
+                <RouterLink to="/features" class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4">
+                  Lihat fitur
+                </RouterLink>
 
                 <RouterLink
                   v-if="!auth.token"
                   to="/login"
-                  class="rounded-xl border-2 border-ink bg-ink px-5 py-3 text-sm font-extrabold text-paper shadow-ink-sm"
+                  class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4"
                 >
                   Login
                 </RouterLink>
               </div>
 
-              <div class="mt-7 flex flex-wrap gap-2">
-                <span class="ink-chip bg-accent/40">Modules & Sessions</span>
-                <span class="ink-chip bg-paper">Attempts & Review</span>
-                <span class="ink-chip bg-ocean-50 text-ocean-700">AI Generate (PDF)</span>
-                <span class="ink-chip bg-paper">Leaderboard Public</span>
-              </div>
             </div>
 
             <div class="relative">
-              <div class="ink-card bg-paper p-6">
-                <div class="flex items-start justify-between gap-3">
-                  <div>
-                    <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Preview</p>
-                    <h2 class="mt-1 text-2xl font-extrabold">Dashboard ringkas</h2>
-                  </div>
-                  <span class="rounded-2xl border-2 border-ink bg-ocean-50 px-3 py-2 text-xs font-extrabold text-ocean-700 shadow-ink-sm">ocean</span>
-                </div>
-
-                <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                  <article class="rounded-2xl border-2 border-ink bg-accent/40 p-4 shadow-ink-sm">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/70">Modul</p>
-                    <p class="mt-2 text-sm font-extrabold">Sesi terjadwal</p>
-                    <p class="mt-1 text-xs font-bold text-ink/60">Konten, materi, dan kuis dalam satu alur.</p>
-                  </article>
-                  <article class="rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/70">Attempts</p>
-                    <p class="mt-2 text-sm font-extrabold">Nilai yang jujur</p>
-                    <p class="mt-1 text-xs font-bold text-ink/60">MCQ auto, essay manual, agregasi konsisten.</p>
-                  </article>
-                  <article class="rounded-2xl border-2 border-ink bg-ocean-50 p-4 shadow-ink-sm">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ocean-700">AI Generate</p>
-                    <p class="mt-2 text-sm font-extrabold">PDF-only</p>
-                    <p class="mt-1 text-xs font-bold text-ink/60">Generate draft dan apply langsung ke quiz.</p>
-                  </article>
-                  <article class="rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-                    <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/70">Leaderboard</p>
-                    <p class="mt-2 text-sm font-extrabold">Public / Private</p>
-                    <p class="mt-1 text-xs font-bold text-ink/60">Urut ranking, tampilkan final score.</p>
-                  </article>
+              <div class="mx-auto w-full max-w-xl rounded-[3rem] p-6 sm:p-10">
+                <div class="grid place-items-center">
+                  <img :src="heroVector" alt="Illustration" class="w-full max-w-md select-none object-contain" />
                 </div>
               </div>
-              <div class="pointer-events-none absolute -bottom-7 -left-7 hidden h-16 w-16 rotate-6 rounded-3xl border-2 border-ink bg-ocean-500 shadow-ink lg:block" />
             </div>
           </div>
         </div>
@@ -292,6 +254,8 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
+import heroVector from '@/assets/images/undraw_all-checked_d3u6.svg'
 
 import MarketingHeader from '@/components/marketing/MarketingHeader.vue'
 import MarketingFooter from '@/components/marketing/MarketingFooter.vue'

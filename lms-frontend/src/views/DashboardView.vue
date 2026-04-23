@@ -4,7 +4,7 @@
       <header class="ink-card bg-paper-grid p-6 motion-safe:animate-rise">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Scholarly</p>
+            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Pandu</p>
             <h1 class="mt-2 text-2xl font-semibold leading-tight">
               <span class="text-ink/60">Selamat datang,</span><br />
               <span class="underline decoration-accent decoration-[10px] underline-offset-[6px]">{{ displayName }}</span>

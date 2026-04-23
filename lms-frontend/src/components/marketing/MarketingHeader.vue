@@ -1,63 +1,74 @@
 <template>
-  <header class="sticky top-0 z-50 border-b-2 border-ink bg-paper/85 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
-      <RouterLink to="/" class="flex items-center gap-3">
-        <span class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-accent text-xs font-extrabold">
-          LMS
-        </span>
-        <span class="font-display text-sm font-semibold tracking-tight text-ink">Scholarly</span>
-      </RouterLink>
-
-      <nav class="hidden items-center gap-2 sm:flex">
-        <component
-          :is="isLanding ? 'a' : RouterLink"
-          :href="isLanding ? '#features' : undefined"
-          :to="!isLanding ? { name: 'landing', hash: '#features' } : undefined"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
-        >
-          Features
-        </component>
-
-        <RouterLink
-          to="/about"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
-        >
-          About
+  <header
+    :class="
+      isLanding
+        ? [
+            'fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 transition-transform duration-200 will-change-transform',
+            headerHidden ? '-translate-y-[160%]' : 'translate-y-0',
+          ]
+        : 'sticky top-0 z-50 border-b-2 border-ink bg-paper/85 backdrop-blur'
+    "
+  >
+    <div :class="isLanding ? 'rounded-full border-2 border-ink bg-paper/85 backdrop-blur shadow-ink' : ''">
+      <div class="mx-auto flex w-full max-w-6xl items-center px-4 py-4">
+        <RouterLink to="/" class="flex items-center gap-3">
+          <img :src="logoPandu" alt="Pandu" class="h-8 w-16 shrink-0 object-contain" />
+          <span class="font-display text-md font-semibold tracking-tight text-ink">Pandu</span>
         </RouterLink>
 
-        <RouterLink
-          to="/contact"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
-        >
-          Contact
-        </RouterLink>
+        <nav class="hidden flex-1 items-center justify-center gap-2 sm:flex">
+          <component
+            :is="isLanding ? 'a' : RouterLink"
+            :href="isLanding ? '#' : undefined"
+            :to="!isLanding ? { name: 'landing' } : undefined"
+            class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+          >
+            Home
+          </component>
 
-        <component
-          :is="isLanding ? 'a' : RouterLink"
-          :href="isLanding ? '#report' : undefined"
-          :to="!isLanding ? { name: 'landing', hash: '#report' } : undefined"
-          class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
-        >
-          Report
-        </component>
+          <RouterLink
+            to="/features"
+            class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+          >
+            Features
+          </RouterLink>
 
-        <RouterLink
-          v-if="auth.token"
-          to="/dashboard"
-          class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
-        >
-          Dashboard
-        </RouterLink>
-        <RouterLink
-          v-else
-          to="/login"
-          class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
-        >
-          Login
-        </RouterLink>
-      </nav>
+          <RouterLink
+            to="/about"
+            class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+          >
+            About
+          </RouterLink>
 
-      <div class="sm:hidden">
+          <RouterLink
+            to="/contact"
+            class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
+          >
+            Contact
+          </RouterLink>
+
+        </nav>
+
+        <div class="hidden items-center sm:flex">
+          <RouterLink
+            v-if="auth.token"
+            to="/dashboard"
+            class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
+          >
+          <span class="flex justify-center align-center gap-2">
+            <img :src="loginIcon" alt="icon-login" class="h-4"> Get Started
+          </span>
+          </RouterLink>
+          <RouterLink
+            v-else
+            to="/login"
+            class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
+          >
+            Login
+          </RouterLink>
+        </div>
+
+        <div class="sm:hidden ml-auto">
         <button
           ref="mobileMenuButtonRef"
           type="button"
@@ -78,20 +89,38 @@
           </svg>
         </button>
       </div>
+      </div>
     </div>
 
-    <div v-if="mobileMenuOpen" id="mobile-nav" ref="mobileMenuRef" class="border-t-2 border-ink bg-paper/95 backdrop-blur sm:hidden">
+    <div
+      v-if="mobileMenuOpen"
+      id="mobile-nav"
+      ref="mobileMenuRef"
+      :class="
+        isLanding
+          ? 'mt-2 rounded-2xl border-2 border-ink bg-paper/95 backdrop-blur shadow-ink sm:hidden'
+          : 'border-t-2 border-ink bg-paper/95 backdrop-blur sm:hidden'
+      "
+    >
       <div class="mx-auto w-full max-w-6xl px-4 py-4">
         <div class="grid gap-2">
           <component
             :is="isLanding ? 'a' : RouterLink"
-            :href="isLanding ? '#features' : undefined"
-            :to="!isLanding ? { name: 'landing', hash: '#features' } : undefined"
+            :href="isLanding ? '#' : undefined"
+            :to="!isLanding ? { name: 'landing' } : undefined"
+            class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
+            @click="onMobileNavClick"
+          >
+            Home
+          </component>
+
+          <RouterLink
+            to="/features"
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
             @click="onMobileNavClick"
           >
             Features
-          </component>
+          </RouterLink>
 
           <RouterLink
             to="/about"
@@ -108,16 +137,6 @@
           >
             Contact
           </RouterLink>
-
-          <component
-            :is="isLanding ? 'a' : RouterLink"
-            :href="isLanding ? '#report' : undefined"
-            :to="!isLanding ? { name: 'landing', hash: '#report' } : undefined"
-            class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
-            @click="onMobileNavClick"
-          >
-            Report
-          </component>
 
           <RouterLink
             v-if="auth.token"
@@ -143,14 +162,19 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
 import { useAuthStore } from '@/stores/auth'
+import logoPandu from '@/assets/logo_pandu_.png'
+import loginIcon from '@/assets/icons/login64px.png'
 
 const auth = useAuthStore()
 const route = useRoute()
 const isLanding = computed(() => route.name === 'landing')
+
+const headerHidden = ref(false)
+let lastScrollY = 0
 
 const mobileMenuOpen = ref(false)
 const mobileMenuRef = ref(null)
@@ -162,6 +186,30 @@ function onMobileNavClick() {
 
 function toggleMobileMenu() {
   mobileMenuOpen.value = !mobileMenuOpen.value
+  if (mobileMenuOpen.value) headerHidden.value = false
+}
+
+function onScroll() {
+  const y = window.scrollY || 0
+  const shouldAnimate = isLanding.value
+
+  if (!shouldAnimate || mobileMenuOpen.value) {
+    headerHidden.value = false
+    lastScrollY = y
+    return
+  }
+
+  if (y <= 0) {
+    headerHidden.value = false
+    lastScrollY = y
+    return
+  }
+
+  const delta = y - lastScrollY
+  const threshold = 10
+  if (delta > threshold) headerHidden.value = true
+  if (delta < -threshold) headerHidden.value = false
+  lastScrollY = y
 }
 
 function onDocClick(e) {
@@ -187,10 +235,21 @@ function onKeydown(e) {
 onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('keydown', onKeydown)
+  lastScrollY = window.scrollY || 0
+  window.addEventListener('scroll', onScroll, { passive: true })
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocClick)
   window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('scroll', onScroll)
 })
+
+watch(
+  () => route.name,
+  () => {
+    headerHidden.value = false
+    lastScrollY = window.scrollY || 0
+  },
+)
 </script>

@@ -81,7 +81,7 @@ const draft = reactive({
 })
 
 const mailtoHref = computed(() => {
-  const subject = encodeURIComponent(`[Scholarly LMS] ${draft.topic || 'Report'}`)
+  const subject = encodeURIComponent(`[Pandu LMS] ${draft.topic || 'Report'}`)
   const body = encodeURIComponent(
     `Nama: ${draft.name || '-'}\nEmail: ${draft.email || '-'}\n\n${draft.message || ''}`
   )

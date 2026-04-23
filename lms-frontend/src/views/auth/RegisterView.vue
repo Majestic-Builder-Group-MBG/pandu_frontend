@@ -26,7 +26,7 @@
 
               <!-- Logo -->
               <header>
-                <p class="font-display text-sm md:text-md font-semibold text-white/95">Scholarly</p>
+                <p class="font-display text-sm md:text-md font-semibold text-white/95">Pandu</p>
                 <p class="mt-1 text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.24em] text-white/75">
                   Academy
                 </p>

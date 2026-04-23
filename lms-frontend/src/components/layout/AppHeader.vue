@@ -2,10 +2,8 @@
   <header class="sticky top-0 z-50 border-b-2 border-ink bg-paper/80 backdrop-blur">
     <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
       <RouterLink to="/dashboard" class="flex items-center gap-3">
-        <span class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-accent text-xs font-extrabold">
-          LMS
-        </span>
-        <span class="font-display text-sm font-semibold tracking-tight text-ink">Scholarly</span>
+        <img :src="logoPandu" alt="Pandu" class="h-10 w-10 shrink-0 object-contain" />
+        <span class="font-display text-sm font-semibold tracking-tight text-ink">Pandu</span>
       </RouterLink>
 
       <nav class="hidden items-center gap-2 sm:flex">
@@ -142,6 +140,7 @@ import { RouterLink } from 'vue-router'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { getServices } from '@/services'
+import logoPandu from '@/assets/logo_pandu_.png'
 
 const router = useRouter()
 const auth = useAuthStore()

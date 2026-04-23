@@ -26,7 +26,7 @@
 
               <!-- Logo -->
               <header>
-                <p class="font-display text-sm md:text-md font-semibold text-white/95">Scholarly</p>
+                <p class="font-display text-sm md:text-md font-semibold text-white/95">Pandu</p>
                 <p class="mt-1 text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.24em] text-white/75">
                   Academy
                 </p>
@@ -57,7 +57,7 @@
                   <div class="h-9 w-9 rounded-xl bg-white/10" />
                   <div class="h-9 w-9 rounded-xl bg-white/10" />
                 </div>
-                <p class="text-xs font-bold text-white/70">@Scholarly</p>
+                 <p class="text-xs font-bold text-white/70">@Pandu</p>
               </footer>
             </div>
           </section>
