@@ -142,7 +142,7 @@
       </section>
 
       <section id="about" class="relative overflow-hidden border-y-2 border-ink bg-paper">
-        <div class="pointer-events-none absolute -right-24 top-16 hidden h-72 w-72 rotate-6 rounded-[3rem] border-2 border-ink bg-ocean-50 shadow-ink sm:block" />
+        <div class="pointer-events-none absolute -right-24 top-16 hidden h-52 w-52 rotate-6 rounded-[3rem] border-2 border-ink bg-ocean-50 shadow-ink sm:block" />
 
         <div class="sm:h-[42rem] mx-auto w-full max-w-6xl px-4 py-16 sm:py-20">
           <div class="grid items-center justify-center gap-10 lg:grid-cols-2">
@@ -182,10 +182,68 @@
         </div>
       </section>
 
-      <section id="report" class="min-h-dvh">
-        <div class="mx-auto flex min-h-dvh w-full max-w-6xl items-center px-4 py-12">
-          <div class="w-full">
-            <ReportForm />
+      <section id="try" class="relative overflow-hidden bg-cloud">
+        <div class="pointer-events-none absolute inset-0 opacity-[0.35]">
+          <div class="h-full w-full bg-paper-grid" />
+        </div>
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-paper to-transparent" />
+
+        <div class="pointer-events-none absolute -left-24 -top-24 hidden h-80 w-80 rotate-6 rounded-[3rem] border-2 border-ink bg-accent/25 shadow-ink sm:block" />
+        <div class="pointer-events-none absolute -right-28 bottom-10 hidden h-96 w-96 -rotate-6 rounded-[3rem] border-2 border-ink bg-ocean-50 shadow-ink sm:block" />
+
+        <div class="mx-auto flex min-h-[80dvh] w-full max-w-6xl items-center px-4 py-16 sm:py-20">
+          <div class="grid items-center gap-10 lg:grid-cols-2">
+            <div>
+              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Try It Now</p>
+              <h2 class="mt-3 text-3xl font-extrabold sm:text-4xl">
+                Lihat feel-nya langsung.
+              </h2>
+              <p class="mt-4 max-w-xl text-sm font-semibold text-ink/70">
+                Coba alur Pandu dari dashboard: kelola modul dan sesi, buka quiz dari konteks sesi, lalu lihat attempts dan hasilnya.
+                Untuk versi MVP lomba ini, kita fokus ke flow inti yang gampang dipahami dan gampang dipresentasikan.
+                Kalau kamu belum login, kamu akan diarahkan ke halaman login terlebih dulu, lalu bisa lanjut mencoba fitur-fitur utamanya.
+              </p>
+
+              <div class="mt-8 flex flex-wrap items-center gap-3">
+                <RouterLink
+                  :to="auth.token ? '/dashboard' : '/login'"
+                  class="inline-flex rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                >
+                  Coba Sekarang!
+                </RouterLink>
+                <RouterLink
+                  v-if="!auth.token"
+                  to="/register"
+                  class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4"
+                >
+                  Buat akun
+                </RouterLink>
+              </div>
+            </div>
+
+            <div class="relative">
+              <div class="pointer-events-none absolute -left-10 top-10 hidden h-14 w-14 rotate-12 rounded-3xl border-2 border-ink bg-paper shadow-ink-sm lg:block" />
+              <div class="pointer-events-none absolute -right-6 top-24 hidden h-9 w-24 -rotate-6 rounded-full border-2 border-ink bg-accent/50 shadow-ink-sm lg:block" />
+
+              <div class="relative mx-auto w-full max-w-[280px] sm:max-w-[320px]">
+                <div class="pointer-events-none absolute -inset-10 -z-10 rotate-3 rounded-[3.25rem] border-2 border-ink bg-paper/60 shadow-ink-sm" />
+                <div class="pointer-events-none absolute -left-10 bottom-8 -z-10 h-16 w-16 -rotate-6 rounded-3xl border-2 border-ink bg-ocean-500 shadow-ink-sm" />
+                <div class="pointer-events-none absolute -right-8 top-6 -z-10 h-20 w-20 rotate-12 rounded-3xl border-2 border-ink bg-accent shadow-ink-sm" />
+
+                <img
+                  :src="tryNowImage"
+                  alt="Pandu LMS on iPhone"
+                  class="w-full max-h-[70dvh] select-none object-contain drop-shadow-[0_22px_55px_rgba(18,18,18,0.16)]"
+                />
+
+                <div class="pointer-events-none absolute -left-6 top-12 hidden rotate-6 rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-[10px] font-extrabold shadow-ink-sm sm:block">
+                  PDF -> Quiz
+                </div>
+                <div class="pointer-events-none absolute -right-4 bottom-10 hidden -rotate-6 rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-[10px] font-extrabold shadow-ink-sm sm:block">
+                  Mobile-ready
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -201,10 +259,10 @@ import { useAuthStore } from '@/stores/auth'
 
 import heroVector from '@/assets/images/undraw_all-checked_d3u6.svg'
 import aboutVector from '@/assets/images/undraw_my-app_jscv.svg'
+import tryNowImage from '@/assets/images/iPhone-13-PRO-localhost.png'
 
 import MarketingHeader from '@/components/marketing/MarketingHeader.vue'
 import MarketingFooter from '@/components/marketing/MarketingFooter.vue'
-import ReportForm from '@/components/marketing/ReportForm.vue'
 
 const auth = useAuthStore()
 </script>
