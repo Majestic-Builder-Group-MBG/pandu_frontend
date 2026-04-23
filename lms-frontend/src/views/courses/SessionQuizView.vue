@@ -1140,7 +1140,6 @@
       :open="studentScoreOpen"
       title="Nilai Quiz"
       kicker="Leaderboard"
-      subtitle="Kalau pengampu mengizinkan, nilai semua student akan tampil di sini."
       @close="studentScoreOpen = false"
     >
       <p v-if="studentScoreError" class="rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
@@ -1172,15 +1171,6 @@
         </div>
       </div>
 
-      <template #actions>
-        <button
-          type="button"
-          class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
-          @click="studentScoreOpen = false"
-        >
-          Oke
-        </button>
-      </template>
     </BaseModal>
 
     <div v-if="aiGenerateStatus === 'loading'" class="fixed inset-0 z-[90] grid place-items-center bg-ink/40 p-4">

@@ -3,6 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '@/views/DashboardView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import RegisterView from '@/views/auth/RegisterView.vue'
+import LandingView from '@/views/marketing/LandingView.vue'
+import AboutView from '@/views/marketing/AboutView.vue'
+import ContactView from '@/views/marketing/ContactView.vue'
 import QuizHubView from '@/views/quizzes/QuizHubView.vue'
 import CoursesView from '@/views/courses/CoursesView.vue'
 import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
@@ -16,7 +19,21 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/dashboard',
+      name: 'landing',
+      component: LandingView,
+      meta: { layout: 'marketing' },
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: AboutView,
+      meta: { layout: 'marketing' },
+    },
+    {
+      path: '/contact',
+      name: 'contact',
+      component: ContactView,
+      meta: { layout: 'marketing' },
     },
     {
       path: '/dashboard',
@@ -73,7 +90,8 @@ const router = createRouter({
       meta: { layout: 'auth' },
     },
   ],
-  scrollBehavior() {
+  scrollBehavior(to) {
+    if (to.hash) return { el: to.hash, top: 92, behavior: 'smooth' }
     return { top: 0 }
   },
 })
