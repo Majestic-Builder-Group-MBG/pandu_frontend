@@ -45,12 +45,12 @@
           Gagal memuat modul: <span class="font-extrabold">{{ modules.error }}</span>
         </p>
 
-        <div v-else class="mt-5 space-y-2">
+        <div v-else class="mt-5 flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
           <button
             v-for="m in filteredModules"
             :key="m.id"
             type="button"
-            class="w-full rounded-2xl border-2 border-ink px-4 py-3 text-left shadow-ink-sm transition"
+            class="w-[260px] shrink-0 rounded-2xl border-2 border-ink px-4 py-3 text-left shadow-ink-sm transition sm:w-[300px] lg:w-full"
             :class="selectedModuleId === Number(m.id) ? 'bg-accent/40' : 'bg-paper hover:bg-accent/20'"
             @click="selectModule(m.id)"
           >

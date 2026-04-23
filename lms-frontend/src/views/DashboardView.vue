@@ -1,6 +1,6 @@
 <template>
-  <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
-    <section class="space-y-6">
+  <div class="grid gap-8 lg:grid-cols-[1fr_360px]">
+    <section class="space-y-8">
       <header class="ink-card bg-paper-grid p-6 motion-safe:animate-rise">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -17,9 +17,9 @@
         </div>
       </header>
 
-       <div class="grid gap-4 sm:grid-cols-2">
-         <StatCard title="Kelas Diampu" :value="classesCount">
-          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+      <div class="grid gap-4 lg:grid-cols-3">
+        <StatCard title="Kelas Diampu" :value="classesCount">
+           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
             <path
               d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"
               stroke="currentColor"
@@ -45,84 +45,82 @@
           </svg>
         </StatCard>
 
-         <StatCard title="Kursus Aktif" :value="activeCoursesCount" variant="ocean">
-          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+        <StatCard title="Kursus Aktif" :value="activeCoursesCount" variant="ocean">
+           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
             <path d="M4 6.5L12 3l8 3.5-8 3.5-8-3.5Z" stroke="currentColor" stroke-width="2" />
             <path d="M4 10.5l8 3.5 8-3.5" stroke="currentColor" stroke-width="2" />
             <path d="M4 14.5l8 3.5 8-3.5" stroke="currentColor" stroke-width="2" />
           </svg>
         </StatCard>
+
+        <div class="ink-card p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Quiz Terbaru</p>
+              <p class="mt-2 text-4xl font-semibold leading-none">{{ quizzesCount }}</p>
+              <p class="mt-2 text-sm font-semibold text-ink/60">{{ quizzesSummaryLabel }}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-       <div class="ink-card p-6">
-         <div class="flex items-start justify-between gap-4">
-           <div>
-             <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Quiz Terbaru</p>
-             <p class="mt-2 text-4xl font-semibold leading-none">{{ quizzesCount }}</p>
-             <p class="mt-2 text-sm font-semibold text-ink/60">{{ quizzesSummaryLabel }}</p>
-           </div>
-         </div>
-       </div>
-
-      <div class="ink-card p-6">
-        <div class="flex items-center justify-between gap-4">
-          <h2 class="text-lg font-semibold">Modul</h2>
-          <RouterLink
-            to="/courses"
-            class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-          >
-            View all
-          </RouterLink>
-        </div>
-
-        <div v-if="isStudentNoEnrollment" class="mt-5 rounded-2xl border-2 border-ink bg-cloud p-5 shadow-ink-sm">
-          <p class="text-sm font-extrabold">You are not enrolled in any modules yet.</p>
-          <p class="mt-2 text-sm font-semibold text-ink/60">Masukkan enrollment key untuk mulai belajar dari dashboard.</p>
-
-          <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-            <input
-              v-model.trim="dashboardEnrollKey"
-              class="ink-input"
-              placeholder="Enter enrollment key"
-              :disabled="dashboardEnrollLoading"
-            />
-            <button
-              type="button"
-              class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
-              :disabled="dashboardEnrollLoading || !dashboardEnrollKey"
-              @click="enrollFromDashboard"
+      <div class="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+        <div class="ink-card p-6">
+          <div class="flex items-center justify-between gap-4">
+            <h2 class="text-lg font-semibold">Modul</h2>
+            <RouterLink
+              to="/courses"
+              class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
             >
-              {{ dashboardEnrollLoading ? 'Memproses...' : 'Enroll' }}
-            </button>
+              View all
+            </RouterLink>
           </div>
 
-          <p v-if="dashboardEnrollError" class="mt-3 text-xs font-bold text-rose-700">{{ dashboardEnrollError }}</p>
-          <p v-if="dashboardEnrollSuccess" class="mt-3 text-xs font-bold text-emerald-700">{{ dashboardEnrollSuccess }}</p>
-        </div>
+          <div v-if="isStudentNoEnrollment" class="mt-5 rounded-2xl border-2 border-ink bg-cloud p-5 shadow-ink-sm">
+            <p class="text-sm font-extrabold">You are not enrolled in any modules yet.</p>
+            <p class="mt-2 text-sm font-semibold text-ink/60">Masukkan enrollment key untuk mulai belajar dari dashboard.</p>
 
-        <div v-else class="mt-5 grid gap-4 md:grid-cols-2">
-          <ModuleCard v-for="m in visibleModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
-        </div>
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                v-model.trim="dashboardEnrollKey"
+                class="ink-input"
+                placeholder="Enter enrollment key"
+                :disabled="dashboardEnrollLoading"
+              />
+              <button
+                type="button"
+                class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+                :disabled="dashboardEnrollLoading || !dashboardEnrollKey"
+                @click="enrollFromDashboard"
+              >
+                {{ dashboardEnrollLoading ? 'Memproses...' : 'Enroll' }}
+              </button>
+            </div>
 
-        <div v-if="modules.status === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat modul...</div>
-        <div v-else-if="modules.status === 'error'" class="mt-4 text-sm font-semibold text-ink/60">
-          Gagal memuat modul: <span class="font-extrabold">{{ modules.error }}</span>
-        </div>
-      </div>
+            <p v-if="dashboardEnrollError" class="mt-3 text-xs font-bold text-rose-700">{{ dashboardEnrollError }}</p>
+            <p v-if="dashboardEnrollSuccess" class="mt-3 text-xs font-bold text-emerald-700">{{ dashboardEnrollSuccess }}</p>
+          </div>
 
-      <div class="gap-4">
+          <div v-else class="mt-5 grid gap-4 md:grid-cols-2">
+            <ModuleCard v-for="m in visibleModules" :key="m.id" :module="m" :open-to="`/courses/${m.id}`" />
+          </div>
+
+          <div v-if="modules.status === 'loading'" class="mt-4 text-sm font-semibold text-ink/60">Memuat modul...</div>
+          <div v-else-if="modules.status === 'error'" class="mt-4 text-sm font-semibold text-ink/60">
+            Gagal memuat modul: <span class="font-extrabold">{{ modules.error }}</span>
+          </div>
+        </div>
 
         <div class="ink-card p-6">
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Kuis</h2>
-            <span class="ink-chip bg-accent/40">{{ quizzes.length }}</span>
           </div>
           <div class="mt-4 space-y-3">
             <RouterLink
               v-for="q in quizzes"
               :key="q.id"
               :to="q.to"
-              class="block rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm transition hover:bg-accent/20"
+              class="block rounded-2xl bg-paper p-4 shadow-[0_14px_26px_rgba(18,18,18,0.08)] ring-1 ring-ink/10 transition hover:bg-accent/20"
               :title="`Buka quiz: ${q.title}`"
             >
               <p class="text-sm font-extrabold">{{ q.title }}</p>
@@ -140,7 +138,7 @@
 
     </section>
 
-    <aside class="space-y-6">
+    <aside class="space-y-6 self-start lg:sticky lg:top-24 lg:h-fit">
       <div ref="calendarEl" class="ink-card p-6">
         <MiniCalendar
           :year="calendar.year"
@@ -163,7 +161,7 @@
           </button>
         </div>
 
-        <div class="mt-5 space-y-4">
+        <div class="mt-5 max-h-[460px] space-y-3 overflow-auto pr-1">
           <div v-if="upcomingStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat sesi mendatang...</div>
           <div v-else-if="upcomingStatus === 'error'" class="text-sm font-semibold text-ink/60">
             Gagal memuat sesi mendatang: <span class="font-extrabold">{{ upcomingError }}</span>

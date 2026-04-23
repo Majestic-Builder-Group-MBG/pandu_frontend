@@ -1,6 +1,6 @@
 <template>
   <header class="sticky top-0 z-50 border-b-2 border-ink bg-paper/80 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
+    <div class="flex w-full items-center justify-between px-4 py-4">
       <RouterLink to="/dashboard" class="flex items-center gap-3">
         <img :src="logoPandu" alt="Pandu" class="h-10 w-14 shrink-0 object-contain" />
         <span class="font-display text-sm font-semibold tracking-tight text-ink">Pandu</span>
@@ -79,7 +79,7 @@
       ref="mobileMenuRef"
       class="border-t-2 border-ink bg-paper/95 backdrop-blur sm:hidden"
     >
-      <div class="mx-auto w-full max-w-6xl px-4 py-4">
+      <div class="w-full px-4 py-4">
         <div class="grid gap-2">
           <RouterLink
             to="/dashboard"
