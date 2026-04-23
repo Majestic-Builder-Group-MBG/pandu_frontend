@@ -78,13 +78,13 @@
                 <!-- Nama -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Nama</span>
-                  <input v-model.trim="name" class="ink-input py-2.5" placeholder="Siswa 1" autocomplete="name" />
+                  <input v-model.trim="name" class="ink-input py-2.5" placeholder="Budi Santoso" autocomplete="name" />
                 </label>
 
                 <!-- Email -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Email</span>
-                  <input v-model.trim="email" type="email" class="ink-input py-2.5" placeholder="student1@mail.com"
+                  <input v-model.trim="email" type="email" class="ink-input py-2.5" placeholder="nama@pandu.id"
                     autocomplete="email" />
                 </label>
 
@@ -93,7 +93,7 @@
                   <span class="text-sm font-semibold">Password</span>
                   <div class="relative">
                     <input v-model="password" :type="showPassword ? 'text' : 'password'" class="ink-input py-2.5 pr-12"
-                      placeholder="password123" autocomplete="new-password" />
+                      placeholder="***" autocomplete="new-password" />
 
                     <!-- ❗ TIDAK DIUBAH -->
                     <button type="button"

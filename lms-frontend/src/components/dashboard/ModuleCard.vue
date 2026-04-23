@@ -40,7 +40,7 @@
       </div>
 
       <div class="mt-4 flex flex-wrap gap-2">
-        <span class="ink-chip bg-paper">{{ safeNum(module.sessions, 3) }} sesi</span>
+        <span class="ink-chip bg-paper">{{ safeNum(module.sessions, 0) }} sesi</span>
         <span class="ink-chip bg-paper">{{ safeNum(module.quizzes, 0) }} kuis</span>
       </div>
 
@@ -54,6 +54,8 @@ import { useRouter } from 'vue-router'
 import defaultBanner from '@/assets/images/module-banner-default.svg'
 import { getServices } from '@/services'
 import { useModuleBannersStore } from '@/stores/moduleBanners'
+import { useModulesStore } from '@/stores/modules'
+import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps({
   module: {
@@ -132,10 +134,32 @@ async function copyEnrollKey() {
 
 const services = getServices()
 const banners = useModuleBannersStore()
+const modules = useModulesStore()
+const auth = useAuthStore()
+
+const counts = computed(() => {
+  const id = Number(props.module?.id)
+  return modules.countsById?.[id] || null
+})
+
+const sessionsLabel = computed(() => {
+  if (counts.value?.status === 'loading') return '...'
+  return String(safeNum(props.module?.sessions, 0))
+})
+
+const quizzesLabel = computed(() => {
+  if (counts.value?.status === 'loading') return '...'
+  return String(safeNum(props.module?.quizzes, 0))
+})
 
 onMounted(async () => {
   const id = props.module?.id
   const dl = props.module?.bannerDownloadUrl
+
+  if (id) {
+    // Lazily hydrate counts for badges (independent from banner).
+    await modules.ensureCounts({ services, moduleId: id, role: auth.user?.role })
+  }
 
   // Always use authenticated banner endpoint when available.
   if (!id || !dl) return

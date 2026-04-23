@@ -44,14 +44,6 @@
                 <RouterLink to="/features" class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4">
                   Lihat fitur
                 </RouterLink>
-
-                <RouterLink
-                  v-if="!auth.token"
-                  to="/login"
-                  class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4"
-                >
-                  Login
-                </RouterLink>
               </div>
 
             </div>
@@ -188,13 +180,13 @@
         </div>
         <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-paper to-transparent" />
 
-        <div class="pointer-events-none absolute -left-24 -top-24 hidden h-80 w-80 rotate-6 rounded-[3rem] border-2 border-ink bg-accent/25 shadow-ink sm:block" />
+        <div class="pointer-events-none absolute -left-24 -top-24 hidden h-72 w-72 rotate-6 rounded-[3rem] border-2 border-ink bg-accent/25 shadow-ink sm:block" />
         <div class="pointer-events-none absolute -right-28 bottom-10 hidden h-96 w-96 -rotate-6 rounded-[3rem] border-2 border-ink bg-ocean-50 shadow-ink sm:block" />
 
         <div class="mx-auto flex min-h-[80dvh] w-full max-w-6xl items-center px-4 py-16 sm:py-20">
           <div class="grid items-center gap-10 lg:grid-cols-2">
             <div>
-              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Try It Now</p>
+              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Pandu Apps</p>
               <h2 class="mt-3 text-3xl font-extrabold sm:text-4xl">
                 Lihat feel-nya langsung.
               </h2>
@@ -210,13 +202,6 @@
                   class="inline-flex rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                 >
                   Coba Sekarang!
-                </RouterLink>
-                <RouterLink
-                  v-if="!auth.token"
-                  to="/register"
-                  class="text-sm font-extrabold text-ink/70 hover:text-ink hover:underline underline-offset-4"
-                >
-                  Buat akun
                 </RouterLink>
               </div>
             </div>

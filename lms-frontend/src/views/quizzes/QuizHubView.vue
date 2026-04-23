@@ -1,15 +1,17 @@
 <template>
-  <section class="space-y-6">
+  <section class="space-y-8">
     <header class="ink-card bg-paper-grid p-6">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div class="min-w-0">
           <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Library</p>
-          <h1 class="mt-2 text-2xl font-semibold">Quiz</h1>
-          <p class="mt-2 text-sm font-semibold text-ink/60">Pilih modul dan sesi untuk membuka kuis.</p>
+          <h1 class="mt-2 text-2xl font-semibold">Quiz Hub</h1>
+          <p class="mt-2 max-w-2xl text-sm font-semibold text-ink/60">
+            Pilih modul, lalu pilih sesi untuk membuka kuis. Tombol "Buka/Kelola" hanya muncul jika kuis sudah tersedia.
+          </p>
         </div>
 
-        <div class="flex w-full flex-col gap-2 sm:w-auto sm:min-w-[320px]">
-          <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Search</label>
+        <div class="flex w-full flex-col gap-2 lg:w-auto lg:min-w-[360px]">
+          <label class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Search Modul</label>
           <div class="relative">
             <input v-model.trim="query" class="ink-input pr-11" placeholder="Cari modul..." />
             <div class="absolute right-3 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-lg border-2 border-transparent text-ink/60">
@@ -24,11 +26,13 @@
 
       <div class="mt-5 flex flex-wrap items-center gap-2">
         <span class="ink-chip bg-accent/60">Modules ({{ filteredModules.length }})</span>
+        <span class="ink-chip bg-paper">Sesi: {{ sessions.length }}</span>
+        <span class="ink-chip bg-paper">Status: {{ sessionsStatus }}</span>
       </div>
     </header>
 
     <div class="grid gap-6 lg:grid-cols-[360px_1fr]">
-      <aside class="ink-card p-6">
+      <aside class="ink-card p-6 lg:sticky lg:top-24 lg:self-start">
         <div class="flex items-center justify-between gap-4">
           <h2 class="text-lg font-semibold">Modul</h2>
           <RouterLink
@@ -45,12 +49,12 @@
           Gagal memuat modul: <span class="font-extrabold">{{ modules.error }}</span>
         </p>
 
-        <div v-else class="mt-5 flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
+        <div v-else class="mt-5 flex gap-2 overflow-x-auto pb-2 lg:block lg:max-h-[560px] lg:space-y-2 lg:overflow-auto lg:pb-0 lg:pr-1">
           <button
             v-for="m in filteredModules"
             :key="m.id"
             type="button"
-            class="w-[260px] shrink-0 rounded-2xl border-2 border-ink px-4 py-3 text-left shadow-ink-sm transition sm:w-[300px] lg:w-full"
+            class="w-[260px] shrink-0 rounded-2xl border-2 border-ink px-4 py-3 text-left shadow-ink-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-cloud sm:w-[300px] lg:w-full"
             :class="selectedModuleId === Number(m.id) ? 'bg-accent/40' : 'bg-paper hover:bg-accent/20'"
             @click="selectModule(m.id)"
           >
@@ -65,7 +69,7 @@
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Sesi</p>
-              <p class="mt-2 text-sm font-semibold text-ink/60">
+              <p class="mt-2 text-base font-extrabold text-ink/80">
                 {{ selectedModuleLabel }}
               </p>
             </div>
@@ -92,16 +96,24 @@
           <p class="mt-2 text-sm font-semibold text-ink/60">Buat sesi dulu di halaman course.</p>
         </div>
 
-        <div v-else-if="sessionsStatus === 'success'" class="space-y-3">
+        <div v-else-if="sessionsStatus === 'success'" class="grid gap-4">
           <article
             v-for="s in sessions"
             :key="s.id"
-            class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm"
+            class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm transition hover:bg-accent/10"
           >
             <div class="flex flex-wrap items-start justify-between gap-4">
               <div class="min-w-0">
-                <p class="text-sm font-extrabold">{{ s.title }}</p>
+                <p class="text-base font-extrabold">{{ s.title }}</p>
                 <p v-if="s.description" class="mt-1 line-clamp-2 text-sm font-semibold text-ink/60">{{ s.description }}</p>
+
+                <p v-if="sessionsMetaStatusById[s.id] === 'loading'" class="mt-3 inline-flex rounded-full bg-cloud px-3 py-1 text-xs font-extrabold text-ink/60">
+                  Mengecek ketersediaan kuis...
+                </p>
+
+                <p v-else-if="sessionsMetaById[s.id]?.reason" class="mt-3 inline-flex rounded-full bg-cloud px-3 py-1 text-xs font-extrabold text-ink/60">
+                  {{ sessionsMetaById[s.id].reason }}
+                </p>
               </div>
 
               <RouterLink
@@ -112,14 +124,6 @@
                 {{ canManage ? 'Kelola Quiz' : 'Buka Quiz' }}
               </RouterLink>
             </div>
-
-            <p v-if="sessionsMetaStatusById[s.id] === 'loading'" class="mt-3 text-xs font-bold text-ink/50">
-              Mengecek ketersediaan kuis...
-            </p>
-
-            <p v-else-if="sessionsMetaById[s.id]?.reason" class="mt-3 text-xs font-bold text-ink/50">
-              {{ sessionsMetaById[s.id].reason }}
-            </p>
           </article>
         </div>
       </main>
