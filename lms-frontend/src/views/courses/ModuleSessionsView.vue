@@ -271,10 +271,10 @@
               Gagal memuat materi: <span class="font-extrabold">{{ contentsError }}</span>
             </p>
 
-            <div v-else-if="!contents.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
-              <p class="text-sm font-extrabold">Belum ada materi.</p>
-              <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
-            </div>
+             <div v-else-if="!contentsWithQuiz.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
+               <p class="text-sm font-extrabold">Belum ada materi.</p>
+               <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
+             </div>
 
             <div v-else class="mt-4 space-y-3">
               <article
@@ -732,42 +732,49 @@ const quizLink = computed(() => {
   return `/courses/${moduleId.value}/sessions/${selectedSessionId.value}/quiz`
 })
 
-const publishedQuizPreview = ref(null)
-const quizPreviewStatus = ref('idle')
+ const quizPreview = ref(null)
+ const quizPreviewStatus = ref('idle')
 
-const contentsWithQuiz = computed(() => {
-  if (!publishedQuizPreview.value) return contents.value
-  // Show quiz as a content card at the top.
-  return [publishedQuizPreview.value, ...contents.value]
-})
+ const contentsWithQuiz = computed(() => {
+   if (!quizPreview.value) return contents.value
+   return [quizPreview.value, ...contents.value]
+ })
 
-async function loadPublishedQuizPreview() {
-  publishedQuizPreview.value = null
-  quizPreviewStatus.value = 'loading'
+ async function loadQuizPreview() {
+   quizPreview.value = null
+   quizPreviewStatus.value = 'loading'
 
-  try {
-    const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
-    const data = res?.data || res
+   // Jangan tampilkan kuis jika sesi belum "dibuka" (open_at belum diset).
+   if (!scheduleOpenAt.value) {
+     quizPreviewStatus.value = 'success'
+     return
+   }
 
-    const isPublished = Boolean(data?.is_published ?? data?.isPublished)
-    if (!isPublished) {
-      quizPreviewStatus.value = 'success'
-      return
-    }
+   try {
+     const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
+     const data = res?.data || res
 
-    publishedQuizPreview.value = {
-      id: `quiz-${selectedSessionId.value}`,
-      type: 'quiz',
-      title: data?.title || 'Kuis',
-      text: data?.description || ' ',
-    }
-    quizPreviewStatus.value = 'success'
-  } catch (e) {
-    // 404 = quiz belum dibuat, 403 = belum publish (untuk student). Jangan tampilkan card.
-    quizPreviewStatus.value = 'error'
-    publishedQuizPreview.value = null
-  }
-}
+     const isPublished = Boolean(data?.is_published ?? data?.isPublished)
+
+     // Student hanya lihat quiz yang sudah dipublish.
+     if (!canManageSessions.value && !isPublished) {
+       quizPreviewStatus.value = 'success'
+       return
+     }
+
+     quizPreview.value = {
+       id: `quiz-${selectedSessionId.value}`,
+       type: 'quiz',
+       title: data?.title || 'Kuis',
+       text: data?.description || ' ',
+     }
+     quizPreviewStatus.value = 'success'
+   } catch (e) {
+     // 404 = quiz belum dibuat, 403 = student belum boleh lihat. Jangan tampilkan card.
+     quizPreviewStatus.value = 'error'
+     quizPreview.value = null
+   }
+ }
 
 const canManageSessions = computed(() => {
   const r = auth.user?.role
@@ -1038,8 +1045,8 @@ watch(moduleId, async () => {
   deleteModuleOpen.value = false
   moduleActionLoading.value = ''
   feedback.value = { type: '', message: '' }
-  publishedQuizPreview.value = null
-  quizPreviewStatus.value = 'idle'
+     quizPreview.value = null
+     quizPreviewStatus.value = 'idle'
   await loadSessions()
   await ensureModuleBanner()
   await ensureEnrollKey()
@@ -1220,8 +1227,8 @@ watch(selectedSessionId, async () => {
   closeContentModal()
   closeDeleteContent()
   closeMediaPreview()
-  publishedQuizPreview.value = null
-  quizPreviewStatus.value = 'idle'
+   quizPreview.value = null
+   quizPreviewStatus.value = 'idle'
   await loadSchedule(selectedSessionId.value)
   await loadReminder()
 
@@ -1230,7 +1237,7 @@ watch(selectedSessionId, async () => {
     return
   }
 
-  await Promise.all([loadContents(), loadPublishedQuizPreview()])
+   await Promise.all([loadContents(), loadQuizPreview()])
 })
 
 async function openMediaPreview(content, kind) {

@@ -47,10 +47,6 @@ export function useModuleSessions({ services, moduleId, preselectSessionId, canM
         selectSession(wanted)
         return
       }
-
-      if (!selectedSessionId.value && sessions.value.length) {
-        selectSession(sessions.value[0].id)
-      }
     } catch (e) {
       sessionsStatus.value = 'error'
       sessionsError.value = e?.message || 'Gagal memuat sesi'

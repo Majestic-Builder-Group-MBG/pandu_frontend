@@ -5,6 +5,12 @@ function isoToLocalInput(iso) {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
 
+  return dateToLocalInput(d)
+}
+
+function dateToLocalInput(d) {
+  if (!d || Number.isNaN(d.getTime())) return ''
+
   const pad = (n) => String(n).padStart(2, '0')
   const yyyy = d.getFullYear()
   const mm = pad(d.getMonth() + 1)
@@ -76,7 +82,8 @@ export function useSessionSchedule({ services, moduleId, selectedSessionId, canM
 
   function openScheduleModal() {
     scheduleModalError.value = ''
-    scheduleDraftLocal.value = isoToLocalInput(scheduleOpenAt.value)
+    // Default to now() when schedule isn't set, while still allowing manual edits.
+    scheduleDraftLocal.value = scheduleOpenAt.value ? isoToLocalInput(scheduleOpenAt.value) : dateToLocalInput(new Date())
     scheduleOpen.value = true
   }
 

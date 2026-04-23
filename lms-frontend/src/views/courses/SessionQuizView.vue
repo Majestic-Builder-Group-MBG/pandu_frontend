@@ -27,6 +27,17 @@
           </button>
 
           <button
+            v-if="canManage"
+            type="button"
+            class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+            :disabled="aiGenerateStatus === 'loading'"
+            @click="openAiGenerate"
+            title="Generate draft soal dari materi PDF sesi ini"
+          >
+            AI Generate
+          </button>
+
+          <button
             v-if="canManage && quizExists"
             type="button"
             class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
@@ -196,6 +207,19 @@
               </span>
             </div>
 
+            <div class="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm disabled:cursor-not-allowed disabled:opacity-70"
+                :disabled="studentScoreStatus === 'loading'"
+                @click="openStudentScore"
+              >
+                {{ studentScoreStatus === 'loading' ? 'Memuat...' : 'Lihat Nilai' }}
+              </button>
+
+              <span class="text-xs font-bold text-ink/50">(Tampil kalau pengampu mengizinkan)</span>
+            </div>
+
             <p v-if="studentNotice" class="mt-4 rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
               {{ studentNotice }}
             </p>
@@ -253,7 +277,10 @@
                   <div
                     v-for="opt in (q.options || [])"
                     :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
-                    class="flex items-center justify-between gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
+                    class="flex items-center justify-between gap-3 rounded-xl border-2 bg-cloud px-3 py-2 shadow-ink-sm"
+                    :class="canManage && isCorrectOption(opt)
+                      ? 'border-emerald-700 outline outline-2 outline-emerald-200'
+                      : 'border-ink'"
                   >
                     <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
                       <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-16 w-full object-contain" />
@@ -282,7 +309,7 @@
                 type="button"
                 class="rounded-xl border-2 border-ink bg-emerald-500 px-4 py-2 text-sm font-extrabold text-white shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
                 :disabled="submitStatus === 'loading'"
-                @click="submit"
+                @click="openSubmitConfirm"
               >
                 {{ submitStatus === 'loading' ? 'Mengirim...' : 'Submit' }}
               </button>
@@ -306,6 +333,14 @@
                     </p>
                   </div>
                 </div>
+
+                <img
+                  v-if="mediaSrcForQuestion(q)"
+                  :src="mediaSrcForQuestion(q)"
+                  alt="Question image"
+                  class="mt-3 w-full max-h-[360px] rounded-2xl border-2 border-ink object-contain bg-cloud shadow-ink-sm"
+                  loading="lazy"
+                />
 
                 <div class="mt-4">
                   <div v-if="(q.question_type || q.questionType) === 'mcq'" class="space-y-2">
@@ -336,17 +371,41 @@
                     />
                   </div>
                 </div>
-
-                <img
-                  v-if="mediaSrcForQuestion(q)"
-                  :src="mediaSrcForQuestion(q)"
-                  alt="Question image"
-                  class="mt-4 w-full max-h-[360px] rounded-2xl border-2 border-ink object-contain bg-cloud shadow-ink-sm"
-                  loading="lazy"
-                />
               </article>
             </div>
           </article>
+
+          <BaseModal
+            :open="submitSuccessOpen"
+            title="Kuis Selesai"
+            kicker="Quiz"
+            :subtitle="submitSuccessSubtitle"
+            :show-close="false"
+            @close="closeSubmitSuccess"
+          >
+            <p class="text-sm font-semibold text-ink/70">{{ submitSuccessMessage }}</p>
+
+            <template #actions>
+              <button
+                type="button"
+                class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+                @click="closeSubmitSuccess"
+              >
+                Oke
+              </button>
+            </template>
+          </BaseModal>
+
+          <ConfirmDialog
+            :open="submitConfirmOpen"
+            title="Submit Quiz?"
+            kicker="Konfirmasi"
+            message="Kamu yakin mau submit sekarang? Setelah submit, jawaban tidak bisa diubah."
+            confirm-text="Ya, submit"
+            :is-loading="submitStatus === 'loading'"
+            @cancel="closeSubmitConfirm"
+            @confirm="confirmSubmit"
+          />
         </main>
       </div>
 
@@ -415,11 +474,14 @@
             />
 
             <div v-if="(q.question_type || q.questionType) === 'mcq'" class="mt-4 grid gap-2">
-              <div
-                v-for="opt in (q.options || [])"
-                :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
-                class="flex items-center justify-between gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
-              >
+                  <div
+                    v-for="opt in (q.options || [])"
+                    :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
+                    class="flex items-center justify-between gap-3 rounded-xl border-2 bg-cloud px-3 py-2 shadow-ink-sm"
+                    :class="canManage && isCorrectOption(opt)
+                      ? 'border-emerald-700 outline outline-2 outline-emerald-200'
+                      : 'border-ink'"
+                  >
                 <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
                   <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-16 w-full object-contain" />
                 </template>
@@ -444,18 +506,78 @@
               <p class="mt-2 text-sm font-semibold text-ink/60">Lihat attempt murid dan review essay.</p>
             </div>
 
-            <button
-              type="button"
-              class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
-              :disabled="attemptsStatus === 'loading'"
-              @click="loadAttempts({ force: true })"
-            >
-              {{ attemptsStatus === 'loading' ? 'Memuat...' : 'Refresh' }}
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center gap-2 rounded-2xl border-2 border-ink bg-paper px-3 py-2 shadow-ink-sm">
+                <span class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Passing</span>
+                <input
+                  v-model.number="passingScoreDraft"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  class="w-20 rounded-lg border-2 border-ink bg-cloud px-2 py-1 text-sm font-extrabold outline-none"
+                  :disabled="passingScoreStatus === 'loading'"
+                  aria-label="Passing score"
+                />
+                <span class="text-xs font-bold text-ink/50">/ 100</span>
+              </div>
+
+              <button
+                v-if="canManage"
+                type="button"
+                class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+                :disabled="leaderboardVisibilityStatus === 'loading'"
+                @click="toggleLeaderboardVisibility"
+                title="Atur apakah student boleh melihat nilai (global untuk modul ini)"
+              >
+                {{ leaderboardVisibilityStatus === 'loading'
+                  ? 'Menyimpan...'
+                  : `Nilai Student: ${leaderboardVisibility === 'public' ? 'Public' : 'Private'}`
+                }}
+              </button>
+
+              <button
+                v-if="canManage"
+                type="button"
+                class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+                :disabled="studentScoreStatus === 'loading'"
+                @click="openStudentScore"
+                title="Lihat leaderboard nilai student"
+              >
+                {{ studentScoreStatus === 'loading' ? 'Memuat...' : 'Leaderboard' }}
+              </button>
+
+              <button
+                type="button"
+                class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+                :disabled="passingScoreStatus === 'loading'"
+                @click="savePassingScore"
+                title="Simpan batas kelulusan"
+              >
+                {{ passingScoreStatus === 'loading' ? 'Menyimpan...' : 'Simpan' }}
+              </button>
+
+              <button
+                type="button"
+                class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+                :disabled="attemptsStatus === 'loading'"
+                @click="loadAttempts({ force: true })"
+              >
+                {{ attemptsStatus === 'loading' ? 'Memuat...' : 'Refresh' }}
+              </button>
+            </div>
           </div>
 
           <p v-if="attemptsError" class="mt-4 rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
             {{ attemptsError }}
+          </p>
+
+          <p v-if="passingScoreError" class="mt-4 rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
+            {{ passingScoreError }}
+          </p>
+
+          <p v-if="leaderboardVisibilityError" class="mt-4 rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
+            {{ leaderboardVisibilityError }}
           </p>
         </div>
 
@@ -533,16 +655,57 @@
                           <p class="mt-1 text-xs font-bold text-ink/50">{{ row.pointsLabel }}</p>
                         </div>
 
-                        <span
-                          v-if="row.correctnessLabel"
-                          class="shrink-0 rounded-xl border-2 px-2 py-1 text-[11px] font-extrabold"
-                          :class="row.correctnessLabel === 'BENAR' ? 'border-emerald-700 bg-emerald-50 text-emerald-900' : 'border-rose-700 bg-rose-50 text-rose-900'"
-                        >
-                          {{ row.correctnessLabel }}
-                        </span>
+        <span
+          v-if="row.correctnessLabel"
+          class="shrink-0 rounded-xl border-2 px-2 py-1 text-[11px] font-extrabold"
+          :class="row.correctnessLabel === 'BENAR'
+            ? 'border-emerald-700 bg-emerald-50 text-emerald-900'
+            : row.correctnessLabel === 'REVIEWED'
+              ? 'border-sky-700 bg-sky-50 text-sky-900'
+              : 'border-rose-700 bg-rose-50 text-rose-900'"
+        >
+          {{ row.correctnessLabel }}
+        </span>
                       </div>
 
-                      <div class="mt-4 grid gap-2">
+                      <div v-if="row.questionType === 'essay'" class="mt-4 space-y-3">
+                        <div class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm">
+                          <p class="text-xs font-bold text-ink/50">Jawaban siswa</p>
+                          <p class="mt-1 whitespace-pre-wrap text-sm font-extrabold">{{ row.essayAnswer || row.selectedLabel }}</p>
+                        </div>
+
+                        <div v-if="canManage" class="grid gap-3 sm:grid-cols-[180px_1fr]">
+                          <p v-if="!canGradeEssayForAttempt" class="sm:col-span-2 rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-semibold text-ink/70">
+                            Essay hanya bisa dinilai saat attempt berstatus <span class="font-extrabold">pending review</span>.
+                          </p>
+
+                          <label class="block space-y-2">
+                            <span class="text-sm font-semibold">Manual points</span>
+                            <input
+                              v-model.number="reviewDraftByQuestionId[String(row.questionId)].manual_points"
+                              type="number"
+                              class="ink-input"
+                              min="0"
+                              :max="Number.isFinite(row.possiblePoints) ? row.possiblePoints : 100"
+                              :disabled="!canGradeEssayForAttempt || reviewStatus === 'loading'"
+                            />
+                            <p v-if="Number.isFinite(row.possiblePoints)" class="text-xs font-bold text-ink/50">Maks: {{ row.possiblePoints }}</p>
+                          </label>
+
+                          <label class="block space-y-2">
+                            <span class="text-sm font-semibold">Feedback</span>
+                            <input
+                              v-model.trim="reviewDraftByQuestionId[String(row.questionId)].reviewer_feedback"
+                              type="text"
+                              class="ink-input"
+                              placeholder="Catatan untuk murid (opsional)"
+                              :disabled="!canGradeEssayForAttempt || reviewStatus === 'loading'"
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div v-else class="mt-4 grid gap-2">
                         <div class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm">
                           <p class="text-xs font-bold text-ink/50">Jawaban siswa</p>
                           <p class="mt-1 text-sm font-extrabold">{{ row.selectedLabel }}</p>
@@ -555,66 +718,27 @@
                       </div>
                     </article>
                   </div>
-                </div>
 
-                <details class="mt-6 rounded-2xl border-2 border-ink bg-cloud p-4 shadow-ink-sm">
-                  <summary class="cursor-pointer text-sm font-extrabold">Raw payload</summary>
-                  <pre class="mt-3 overflow-auto text-xs font-semibold text-ink/70">{{ prettyJson(attemptDetail) }}</pre>
-                </details>
+                  <div v-if="canManage && reviewableEssayItems.length" class="mt-6 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <p class="text-sm font-semibold text-ink/60">Review essay langsung di card jawaban essay.</p>
+                      <button
+                        type="button"
+                        class="rounded-xl border-2 border-ink bg-emerald-500 px-4 py-2 text-sm font-extrabold text-white shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+                        :disabled="reviewStatus === 'loading' || !canGradeEssayForAttempt"
+                        @click="saveReview"
+                      >
+                        {{ reviewStatus === 'loading' ? 'Menyimpan...' : 'Simpan Review' }}
+                      </button>
+                    </div>
 
-                <div class="mt-6">
-                  <p class="text-sm font-extrabold">Review Essay</p>
-                  <p class="mt-2 text-sm font-semibold text-ink/60">Isi manual points dan feedback untuk soal essay, lalu simpan.</p>
+                    <p v-if="reviewError" class="rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
+                      {{ reviewError }}
+                    </p>
+                  </div>
 
-                  <p v-if="reviewError" class="mt-3 rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
-                    {{ reviewError }}
-                  </p>
-
-                  <p v-else-if="!essayReviewItems.length" class="mt-3 text-sm font-semibold text-ink/60">
-                    Tidak ditemukan jawaban essay pada payload attempt.
-                  </p>
-
-                  <div v-else class="mt-4 space-y-3">
-                    <article
-                      v-for="item in essayReviewItems"
-                      :key="item.question_id"
-                      class="rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm"
-                    >
-                      <p class="text-sm font-extrabold">Question #{{ item.question_id }}</p>
-                      <p v-if="item.question_text" class="mt-2 text-sm font-semibold text-ink/70">{{ item.question_text }}</p>
-                      <p v-if="item.essay_answer" class="mt-2 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ item.essay_answer }}</p>
-
-                      <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                        <label class="block space-y-2">
-                          <span class="text-sm font-semibold">Manual points</span>
-                          <input
-                            v-model.number="reviewDraftByQuestionId[String(item.question_id)].manual_points"
-                            type="number"
-                            class="ink-input"
-                            min="0"
-                          />
-                        </label>
-
-                        <label class="block space-y-2">
-                          <span class="text-sm font-semibold">Feedback</span>
-                          <input
-                            v-model.trim="reviewDraftByQuestionId[String(item.question_id)].reviewer_feedback"
-                            type="text"
-                            class="ink-input"
-                            placeholder="Catatan untuk murid (opsional)"
-                          />
-                        </label>
-                      </div>
-                    </article>
-
-                    <button
-                      type="button"
-                      class="rounded-xl border-2 border-ink bg-emerald-500 px-4 py-2 text-sm font-extrabold text-white shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
-                      :disabled="reviewStatus === 'loading'"
-                      @click="saveReview"
-                    >
-                      {{ reviewStatus === 'loading' ? 'Menyimpan...' : 'Simpan Review' }}
-                    </button>
+                  <div v-else-if="canManage && essayReviewItems.length" class="mt-6 rounded-2xl border-2 border-ink bg-cloud p-4 text-sm font-semibold text-ink/70">
+                    Tidak ada jawaban essay yang bisa direview di attempt ini.
                   </div>
                 </div>
               </template>
@@ -623,6 +747,7 @@
         </div>
       </div>
     </template>
+
 
     <BaseModal
       :open="quizModalOpen"
@@ -898,6 +1023,175 @@
       @cancel="closeDeleteQuestion"
       @confirm="doDeleteQuestion"
     />
+
+    <BaseModal
+      :open="aiGenerateOpen"
+      title="AI Generate Soal"
+      kicker="Quiz"
+      subtitle="Generate soal otomatis dari materi PDF sesi ini. Hasil generate akan menggantikan soal yang ada dan quiz akan di-unpublish supaya bisa kamu review dulu."
+      :show-close="aiGenerateStatus !== 'loading'"
+      @close="closeAiGenerate"
+    >
+      <form class="space-y-4" @submit.prevent>
+        <div class="space-y-2">
+          <p class="text-sm font-extrabold">Sumber PDF</p>
+          <p class="text-xs font-semibold text-ink/60">
+            Hanya file PDF yang akan dipakai sebagai konteks AI (sesuai aturan backend).
+          </p>
+
+          <div v-if="pdfSourceStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi sesi...</div>
+          <div v-else-if="!pdfSources.length" class="rounded-2xl border-2 border-ink bg-cloud p-4 text-sm font-semibold text-ink/70">
+            Tidak ada materi PDF di sesi ini. Isi <span class="font-extrabold">Manual context</span> agar tetap bisa generate.
+          </div>
+
+          <div v-else class="space-y-2">
+            <label
+              v-for="c in pdfSources"
+              :key="c.id"
+              class="flex items-start gap-3 rounded-2xl border-2 border-ink bg-paper px-4 py-3 shadow-ink-sm"
+            >
+              <input
+                type="checkbox"
+                class="mt-1 h-4 w-4"
+                :value="c.id"
+                v-model="aiGenerateForm.contentIds"
+                :disabled="aiGenerateStatus === 'loading'"
+              />
+              <div class="min-w-0">
+                <p class="truncate text-sm font-extrabold">{{ c.title }}</p>
+                <p class="mt-1 truncate text-xs font-bold text-ink/50">{{ c.fileName }}</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <label class="block space-y-2">
+          <span class="text-sm font-semibold">Manual context (fallback)</span>
+          <textarea
+            v-model.trim="aiGenerateForm.manualContext"
+            class="ink-input min-h-[110px] resize-y"
+            placeholder="Tulis ringkasan materi / poin penting jika PDF tidak bisa diproses..."
+            :disabled="aiGenerateStatus === 'loading'"
+          />
+          <p class="text-xs font-bold text-ink/50">
+            Wajib diisi jika tidak ada PDF yang bisa dipakai.
+          </p>
+        </label>
+
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <label class="block space-y-2">
+            <span class="text-sm font-semibold">MCQ</span>
+            <input v-model.number="aiGenerateForm.mcqCount" type="number" min="0" max="50" class="ink-input" :disabled="aiGenerateStatus === 'loading'" />
+          </label>
+          <label class="block space-y-2">
+            <span class="text-sm font-semibold">Essay</span>
+            <input v-model.number="aiGenerateForm.essayCount" type="number" min="0" max="50" class="ink-input" :disabled="aiGenerateStatus === 'loading'" />
+          </label>
+          <label class="block space-y-2">
+            <span class="text-sm font-semibold">Difficulty</span>
+            <select v-model="aiGenerateForm.difficulty" class="ink-input" :disabled="aiGenerateStatus === 'loading'">
+              <option value="easy">easy</option>
+              <option value="medium">medium</option>
+              <option value="hard">hard</option>
+            </select>
+          </label>
+          <label class="block space-y-2">
+            <span class="text-sm font-semibold">Locale</span>
+            <select v-model="aiGenerateForm.locale" class="ink-input" :disabled="aiGenerateStatus === 'loading'">
+              <option value="id">id</option>
+              <option value="en">en</option>
+            </select>
+          </label>
+        </div>
+
+        <p v-if="aiGenerateError" class="rounded-xl border-2 border-ink bg-accent/30 px-4 py-3 text-sm font-semibold text-ink">
+          {{ aiGenerateError }}
+        </p>
+
+        <div v-if="aiGenerateWarnings.length" class="rounded-2xl border-2 border-ink bg-cloud p-4">
+          <p class="text-sm font-extrabold">Warnings</p>
+          <ul class="mt-2 list-disc pl-5 text-xs font-semibold text-ink/70">
+            <li v-for="(w, idx) in aiGenerateWarnings" :key="idx">{{ w }}</li>
+          </ul>
+        </div>
+      </form>
+
+      <template #actions>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-paper px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+          :disabled="aiGenerateStatus === 'loading'"
+          @click="closeAiGenerate"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+          :disabled="aiGenerateStatus === 'loading'"
+          @click="runAiGenerate"
+        >
+          {{ aiGenerateStatus === 'loading' ? 'Generating...' : 'Generate' }}
+        </button>
+      </template>
+    </BaseModal>
+
+    <BaseModal
+      :open="studentScoreOpen"
+      title="Nilai Quiz"
+      kicker="Leaderboard"
+      subtitle="Kalau pengampu mengizinkan, nilai semua student akan tampil di sini."
+      @close="studentScoreOpen = false"
+    >
+      <p v-if="studentScoreError" class="rounded-xl border-2 border-rose-700 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-900">
+        {{ studentScoreError }}
+      </p>
+
+      <div v-else class="space-y-2">
+        <p v-if="studentScoreStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat nilai...</p>
+
+        <div v-else-if="!leaderboardRows.length" class="text-sm font-semibold text-ink/60">Leaderboard belum tersedia.</div>
+
+        <div v-else class="space-y-2">
+          <article
+            v-for="(r, idx) in leaderboardRows"
+            :key="r.key || idx"
+            class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 shadow-ink-sm"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-extrabold">#{{ r.rank ?? idx + 1 }} {{ r.name || 'Student' }}</p>
+              <span class="rounded-xl border-2 border-ink bg-cloud px-2 py-1 text-xs font-extrabold">{{ r.scoreLabel }} / 100</span>
+            </div>
+
+            <p v-if="r.pointsLabel || r.attemptNo || r.submittedAt" class="mt-1 text-xs font-bold text-ink/60">
+              <span v-if="r.pointsLabel">{{ r.pointsLabel }} poin</span>
+              <span v-if="r.attemptNo">{{ r.pointsLabel ? ' • ' : '' }}Attempt #{{ r.attemptNo }}</span>
+              <span v-if="r.submittedAt">{{ (r.pointsLabel || r.attemptNo) ? ' • ' : '' }}{{ r.submittedAt }}</span>
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <template #actions>
+        <button
+          type="button"
+          class="rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm"
+          @click="studentScoreOpen = false"
+        >
+          Oke
+        </button>
+      </template>
+    </BaseModal>
+
+    <div v-if="aiGenerateStatus === 'loading'" class="fixed inset-0 z-[90] grid place-items-center bg-ink/40 p-4">
+      <div class="ink-card w-full max-w-sm bg-paper p-6 text-center shadow-ink">
+        <p class="text-sm font-extrabold">AI lagi ngerjain soalnya...</p>
+        <p class="mt-2 text-sm font-semibold text-ink/60">Tunggu sebentar ya. Jangan tutup halaman ini dulu.</p>
+        <div class="mt-5 h-2 w-full overflow-hidden rounded-full border-2 border-ink bg-cloud">
+          <div class="h-full w-1/2 animate-pulse bg-accent" />
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -910,6 +1204,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { getServices } from '@/services'
 import { useAuthStore } from '@/stores/auth'
 import { useModulesStore } from '@/stores/modules'
+import { normalizeListResponse } from '@/services/mappers/list'
 
 const route = useRoute()
 const router = useRouter()
@@ -946,6 +1241,15 @@ const attemptDetailStatus = ref('idle')
 const attemptDetailError = ref('')
 const attemptDetail = ref(null)
 
+const leaderboardVisibility = ref('private') // private | public
+const leaderboardVisibilityStatus = ref('idle')
+const leaderboardVisibilityError = ref('')
+
+const studentScoreOpen = ref(false)
+const studentScoreStatus = ref('idle')
+const studentScoreError = ref('')
+const leaderboardRows = ref([])
+
 const reviewStatus = ref('idle')
 const reviewError = ref('')
 const reviewDraftByQuestionId = ref({})
@@ -958,6 +1262,52 @@ const attemptId = ref(null)
 const remainingSeconds = ref(null)
 const studentNotice = ref('')
 let countdownTimer = null
+
+const submitSuccessOpen = ref(false)
+const submitSuccessMessage = ref('')
+const submitSuccessSubtitle = computed(() => {
+  const title = quizTitle.value
+  return title ? `Nice! Kamu sudah menyelesaikan "${title}".` : 'Nice! Kamu sudah menyelesaikan kuis ini.'
+})
+
+const submitConfirmOpen = ref(false)
+
+const aiGenerateOpen = ref(false)
+const aiGenerateStatus = ref('idle') // idle | loading
+const aiGenerateError = ref('')
+const aiGenerateWarnings = ref([])
+
+const pdfSourceStatus = ref('idle')
+const sessionContents = ref([])
+
+const aiGenerateForm = reactive({
+  contentIds: [],
+  manualContext: '',
+  mcqCount: 5,
+  essayCount: 3,
+  difficulty: 'medium',
+  locale: 'id',
+})
+
+const pdfSources = computed(() => {
+  const list = sessionContents.value
+  return list
+    .map((c) => {
+      const id = c?.id
+      const type = String(c?.content_type || c?.type || '').toLowerCase()
+      const mime = String(c?.mime_type || c?.mimeType || '').toLowerCase()
+      const fileName = String(c?.original_name || c?.file_name || c?.filename || c?.title || '').trim()
+      const isPdf = mime.includes('pdf') || fileName.toLowerCase().endsWith('.pdf')
+
+      if (!id || type !== 'file' || !isPdf) return null
+      return {
+        id,
+        title: String(c?.title || 'PDF').trim() || 'PDF',
+        fileName: fileName || `content-${id}.pdf`,
+      }
+    })
+    .filter(Boolean)
+})
 
 const questionMediaStatusById = reactive({})
 const questionMediaUrlById = reactive({})
@@ -991,6 +1341,16 @@ const quizPassingScoreLabel = computed(() => {
   const n = quiz.value?.passing_score ?? quiz.value?.passingScore
   return n == null || n === '' ? '-' : String(n)
 })
+
+const passingScoreThreshold = computed(() => {
+  const raw = quiz.value?.passing_score ?? quiz.value?.passingScore
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : 70
+})
+
+const passingScoreDraft = ref(70)
+const passingScoreStatus = ref('idle')
+const passingScoreError = ref('')
 
 const studentHint = computed(() => {
   const dur = quiz.value?.duration_minutes ?? quiz.value?.durationMinutes
@@ -1026,7 +1386,7 @@ const quizDraft = ref({
   description: '',
   duration_minutes: 30,
   max_attempts: 1,
-  passing_score: 75,
+  passing_score: 70,
   bannerFile: null,
   bannerLabel: 'No file chosen',
   remove_banner: false,
@@ -1079,6 +1439,16 @@ onMounted(async () => {
   await loadQuiz()
 })
 
+watch(
+  () => passingScoreThreshold.value,
+  (v) => {
+    // Keep draft synced unless user is currently saving.
+    if (passingScoreStatus.value === 'loading') return
+    passingScoreDraft.value = Number.isFinite(Number(v)) ? Number(v) : 70
+  },
+  { immediate: true }
+)
+
 onBeforeUnmount(() => {
   clearCountdown()
   revokeBannerUrl()
@@ -1106,6 +1476,15 @@ watch([moduleId, sessionId], async () => {
   remainingSeconds.value = null
   revokeAllQuestionMedia()
   revokeAllDraftPreviews()
+  aiGenerateOpen.value = false
+  aiGenerateStatus.value = 'idle'
+  aiGenerateError.value = ''
+  aiGenerateWarnings.value = []
+  pdfSourceStatus.value = 'idle'
+  sessionContents.value = []
+  aiGenerateForm.contentIds = []
+  aiGenerateForm.manualContext = ''
+  submitConfirmOpen.value = false
   await loadQuiz({ force: true })
 })
 
@@ -1211,6 +1590,9 @@ async function loadQuiz({ force = false } = {}) {
     quiz.value = data
     status.value = 'success'
     await loadBanner()
+
+    const lv = String(data?.leaderboard_visibility || data?.leaderboardVisibility || '').toLowerCase()
+    if (lv === 'public' || lv === 'private') leaderboardVisibility.value = lv
   } catch (e) {
     if (e?.status === 404) {
       quiz.value = null
@@ -1228,6 +1610,142 @@ async function loadQuiz({ force = false } = {}) {
   }
 }
 
+async function toggleLeaderboardVisibility() {
+  if (!canManage.value) return
+  if (!quizExists.value) return
+
+  leaderboardVisibilityError.value = ''
+  leaderboardVisibilityStatus.value = 'loading'
+  try {
+    const next = leaderboardVisibility.value === 'public' ? 'private' : 'public'
+    const res = await services.quizzes.setLeaderboardVisibility(moduleId.value, sessionId.value, {
+      leaderboard_visibility: next,
+    })
+    if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan visibility')
+    leaderboardVisibility.value = next
+  } catch (e) {
+    leaderboardVisibilityError.value = e?.message || 'Gagal menyimpan visibility'
+  } finally {
+    leaderboardVisibilityStatus.value = 'idle'
+  }
+}
+
+function normalizeLeaderboardRows(res) {
+  // Backend payload shape varies by wrapper. Support common nestings.
+  const data = res?.data ?? res
+  const d1 = data?.data ?? data
+  const d2 = d1?.data ?? d1
+
+  const list = Array.isArray(d2)
+    ? d2
+    : Array.isArray(d2?.rows)
+      ? d2.rows
+      : Array.isArray(d2?.leaderboard)
+        ? d2.leaderboard
+        : Array.isArray(d1?.rows)
+          ? d1.rows
+          : Array.isArray(d1?.leaderboard)
+            ? d1.leaderboard
+            : []
+
+  const normalized = list
+    .map((r, idx) => {
+      // Documented fields: rank, student_id, student_name, attempt_no, submitted_at,
+      // final_score_percent, final_score_points, total_points
+      const rankRaw = r?.rank
+      const studentId = r?.student_id ?? r?.studentId ?? r?.id
+      const name =
+        r?.student_name ||
+        r?.studentName ||
+        r?.user_name ||
+        r?.userName ||
+        r?.name ||
+        r?.student?.name ||
+        r?.student?.full_name ||
+        r?.student?.fullName
+
+      // Contract: final_score_percent is the UI source of truth.
+      const percentRaw = r?.final_score_percent ?? r?.finalScorePercent
+      let percent = Number(percentRaw)
+      if (Number.isFinite(percent)) {
+        percent = percent <= 1 ? percent * 100 : percent
+      } else {
+        // Fallback to points (documented audit fields)
+        const total = Number(r?.total_points ?? r?.totalPoints)
+        const points = Number(r?.final_score_points ?? r?.finalScorePoints ?? r?.final_score ?? r?.finalScore)
+        if (Number.isFinite(total) && total > 0 && Number.isFinite(points)) {
+          percent = (points / total) * 100
+        } else {
+          const alt = Number(r?.score ?? r?.percent)
+          if (Number.isFinite(alt)) percent = alt <= 1 ? alt * 100 : alt
+        }
+      }
+
+      if (Number.isFinite(percent)) percent = Math.max(0, Math.min(100, percent))
+
+      const totalPoints = Number(r?.total_points ?? r?.totalPoints)
+      const finalPoints = Number(r?.final_score_points ?? r?.finalScorePoints)
+      const pointsLabel = Number.isFinite(totalPoints) && totalPoints > 0 && Number.isFinite(finalPoints)
+        ? `${formatPoints(finalPoints)}/${formatPoints(totalPoints)}`
+        : ''
+
+      const attemptNo = r?.attempt_no ?? r?.attemptNo
+      const submittedAtRaw = r?.submitted_at ?? r?.submittedAt
+      const submittedAt = submittedAtRaw ? parseIsoToLocal(submittedAtRaw) : ''
+
+      return {
+        key: studentId ?? `${idx}`,
+        rank: Number.isFinite(Number(rankRaw)) ? Number(rankRaw) : null,
+        name: String(name || '').trim() || (studentId != null ? `Student ${studentId}` : 'Student'),
+        score: percent,
+        scoreLabel: Number.isFinite(percent) ? `${percent.toFixed(2)}` : '-',
+        pointsLabel,
+        attemptNo: Number.isFinite(Number(attemptNo)) ? Number(attemptNo) : null,
+        submittedAt,
+      }
+    })
+    .filter((x) => x.name)
+
+  // Prefer backend rank if provided (documented), otherwise rank by score.
+  const hasAnyRank = normalized.some((x) => Number.isFinite(Number(x.rank)))
+  if (hasAnyRank) {
+    normalized.sort((a, b) => (Number(a.rank) || 999999) - (Number(b.rank) || 999999))
+    normalized.forEach((r, i) => {
+      if (!Number.isFinite(Number(r.rank))) r.rank = i + 1
+    })
+  } else {
+    normalized.sort((a, b) => {
+      const as = Number.isFinite(a.score) ? a.score : -1
+      const bs = Number.isFinite(b.score) ? b.score : -1
+      return bs - as
+    })
+    normalized.forEach((r, i) => {
+      r.rank = i + 1
+    })
+  }
+
+  return normalized
+}
+
+async function openStudentScore() {
+  studentScoreOpen.value = true
+  studentScoreError.value = ''
+  leaderboardRows.value = []
+  studentScoreStatus.value = 'loading'
+  try {
+    // Keep it simple: always show latest attempt.
+    const res = await services.quizzes.getLeaderboard(moduleId.value, sessionId.value, { mode: 'latest' })
+    if (res?.success === false) throw new Error(res?.message || 'Leaderboard tidak tersedia')
+    leaderboardRows.value = normalizeLeaderboardRows(res)
+  } catch (e) {
+    studentScoreError.value = canManage.value
+      ? (e?.message || 'Gagal memuat leaderboard')
+      : (e?.message || 'Nilai belum dibuka oleh pengampu.')
+  } finally {
+    studentScoreStatus.value = 'idle'
+  }
+}
+
 function openQuizModal(mode) {
   quizModalMode.value = mode
   quizModalError.value = ''
@@ -1241,7 +1759,7 @@ function openQuizModal(mode) {
       description: quiz.value?.description || '',
       duration_minutes: dur != null && dur !== '' && Number(dur) !== 0 ? Number(dur) : null,
       max_attempts: Number(quiz.value?.max_attempts ?? 1),
-      passing_score: Number(quiz.value?.passing_score ?? 75),
+      passing_score: Number(quiz.value?.passing_score ?? 70),
       bannerFile: null,
       bannerLabel: 'No file chosen',
       remove_banner: false,
@@ -1253,7 +1771,7 @@ function openQuizModal(mode) {
       description: '',
       duration_minutes: 30,
       max_attempts: 1,
-      passing_score: 75,
+      passing_score: 70,
       bannerFile: null,
       bannerLabel: 'No file chosen',
       remove_banner: false,
@@ -1346,6 +1864,32 @@ async function togglePublish() {
     error.value = e?.message || 'Gagal publish quiz'
   } finally {
     publishStatus.value = 'idle'
+  }
+}
+
+async function savePassingScore() {
+  if (!canManage.value) return
+  if (!quizExists.value) return
+
+  passingScoreError.value = ''
+
+  const n = Number(passingScoreDraft.value)
+  if (!Number.isFinite(n) || n < 0 || n > 100) {
+    passingScoreError.value = 'Passing score harus 0-100.'
+    return
+  }
+
+  passingScoreStatus.value = 'loading'
+  try {
+    const res = await services.quizzes.updateQuiz(moduleId.value, sessionId.value, {
+      passing_score: n,
+    })
+    if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan passing score')
+    await loadQuiz({ force: true })
+  } catch (e) {
+    passingScoreError.value = e?.message || 'Gagal menyimpan passing score'
+  } finally {
+    passingScoreStatus.value = 'idle'
   }
 }
 
@@ -1449,6 +1993,112 @@ function validateQuestionDraft(d) {
   return ''
 }
 
+function getQuestionType(q) {
+  return String(q?.question_type || q?.questionType || '').toLowerCase()
+}
+
+function getQuestionText(q) {
+  return String(q?.question_text || q?.questionText || '').trim()
+}
+
+function getQuestionSortOrder(q, fallback = 999) {
+  const raw = q?.sort_order ?? q?.sortOrder
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : fallback
+}
+
+function computePointsPlanTo100(questionList) {
+  const list = Array.isArray(questionList) ? questionList : []
+  const n = list.length
+  if (!n) return []
+
+  // Use cents to avoid float drift. Total = 100.00
+  const totalCents = 10_000
+  const baseCents = Math.floor(totalCents / n)
+  const rem = totalCents - baseCents * n
+
+  return list.map((q, idx) => {
+    const cents = baseCents + (idx < rem ? 1 : 0)
+    const points = Number((cents / 100).toFixed(2))
+    return { id: getQuestionId(q), points }
+  })
+}
+
+async function syncQuestionPointsTo100() {
+  if (!canManage.value) return
+  if (!quizExists.value) return
+
+  // Fetch fresh quiz to avoid using stale state.
+  let fresh
+  try {
+    const res = await services.quizzes.getQuiz(moduleId.value, sessionId.value)
+    fresh = res?.data || res
+  } catch {
+    return
+  }
+
+  const rawQuestions = Array.isArray(fresh?.questions)
+    ? fresh.questions
+    : Array.isArray(fresh?.data?.questions)
+      ? fresh.data.questions
+      : []
+
+  const ordered = [...rawQuestions]
+    .filter((q) => getQuestionId(q) && getQuestionType(q) && getQuestionText(q))
+    .sort((a, b) => {
+      const ao = getQuestionSortOrder(a)
+      const bo = getQuestionSortOrder(b)
+      if (ao !== bo) return ao - bo
+      return Number(getQuestionId(a)) - Number(getQuestionId(b))
+    })
+
+  const plan = computePointsPlanTo100(ordered)
+  if (!plan.length) return
+
+  const currentPointsById = new Map(
+    ordered.map((q) => [String(getQuestionId(q)), Number(q?.points ?? 0)])
+  )
+
+  let changed = false
+  for (let i = 0; i < ordered.length; i++) {
+    const q = ordered[i]
+    const id = String(getQuestionId(q))
+    const target = plan[i]
+    if (!target?.id) continue
+
+    const nextPoints = Number(target.points)
+    const cur = currentPointsById.get(id)
+    if (Number.isFinite(cur) && Math.abs(cur - nextPoints) < 0.001) continue
+
+    const type = getQuestionType(q)
+    const text = getQuestionText(q)
+    const opts = Array.isArray(q?.options) ? q.options : []
+
+    const payload = {
+      question_type: type,
+      question_text: text,
+      points: nextPoints,
+    }
+
+    if (type === 'mcq') {
+      payload.options = opts
+        .map((o) => ({
+          option_text: String(o?.option_text || o?.optionText || '').trim(),
+          is_correct: Boolean(o?.is_correct ?? o?.isCorrect),
+        }))
+        .filter((o) => o.option_text)
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    await services.quizzes.updateQuestion(moduleId.value, sessionId.value, target.id, payload)
+    changed = true
+  }
+
+  if (changed) {
+    await loadQuiz({ force: true })
+  }
+}
+
 async function saveQuestion() {
   questionModalLoading.value = true
   questionModalError.value = ''
@@ -1495,6 +2145,7 @@ async function saveQuestion() {
 
     closeQuestionModal()
     await loadQuiz({ force: true })
+    await syncQuestionPointsTo100()
   } catch (e) {
     questionModalError.value = e?.message || 'Gagal menyimpan soal'
   } finally {
@@ -1538,6 +2189,7 @@ async function doDeleteQuestion() {
     deleteQuestionOpen.value = false
     deleteQuestionTarget.value = null
     await loadQuiz({ force: true })
+    await syncQuestionPointsTo100()
   } catch (e) {
     // Keep dialog open, show error in modal-ish message
     deleteQuestionLoading.value = false
@@ -1618,11 +2270,137 @@ async function submit() {
 
     attemptStatus.value = 'submitted'
     clearCountdown()
+
+    submitSuccessMessage.value =
+      'Mantap. Jawaban kamu sudah kami kirim. Kamu bisa santai dulu, nanti hasilnya bakal muncul sesuai aturan kuis.'
+    submitSuccessOpen.value = true
+
     studentNotice.value = res?.message || 'Jawaban berhasil dikirim.'
   } catch (e) {
     submitError.value = e?.message || 'Gagal submit quiz'
   } finally {
     submitStatus.value = 'idle'
+  }
+}
+
+function openSubmitConfirm() {
+  if (submitStatus.value === 'loading') return
+  submitConfirmOpen.value = true
+}
+
+function closeSubmitConfirm() {
+  if (submitStatus.value === 'loading') return
+  submitConfirmOpen.value = false
+}
+
+async function confirmSubmit() {
+  if (submitStatus.value === 'loading') return
+  // Close first so success modal can take focus.
+  submitConfirmOpen.value = false
+  await submit()
+}
+
+function closeSubmitSuccess() {
+  submitSuccessOpen.value = false
+}
+
+async function ensureSessionContentsLoaded() {
+  if (!canManage.value) return
+  if (pdfSourceStatus.value === 'loading' || pdfSourceStatus.value === 'success') return
+
+  pdfSourceStatus.value = 'loading'
+  try {
+    const res = await services.sessions.listContents(moduleId.value, sessionId.value)
+    sessionContents.value = normalizeListResponse(res)
+    pdfSourceStatus.value = 'success'
+  } catch {
+    // Keep UI usable even if we can't fetch sources.
+    sessionContents.value = []
+    pdfSourceStatus.value = 'error'
+  }
+}
+
+async function openAiGenerate() {
+  if (!canManage.value) return
+  aiGenerateError.value = ''
+  aiGenerateWarnings.value = []
+  aiGenerateForm.manualContext = ''
+  aiGenerateForm.mcqCount = 5
+  aiGenerateForm.essayCount = 3
+  aiGenerateForm.difficulty = 'medium'
+  aiGenerateForm.locale = 'id'
+
+  await ensureSessionContentsLoaded()
+
+  // Default: select all PDF sources.
+  aiGenerateForm.contentIds = pdfSources.value.map((x) => x.id)
+
+  aiGenerateOpen.value = true
+}
+
+function closeAiGenerate() {
+  if (aiGenerateStatus.value === 'loading') return
+  aiGenerateOpen.value = false
+  aiGenerateError.value = ''
+}
+
+async function runAiGenerate() {
+  if (!canManage.value) return
+
+  aiGenerateError.value = ''
+  aiGenerateWarnings.value = []
+
+  const ids = (aiGenerateForm.contentIds || []).map((x) => Number(x)).filter((x) => Number.isFinite(x))
+  const manual = String(aiGenerateForm.manualContext || '').trim()
+
+  if (!ids.length && !manual) {
+    aiGenerateError.value = 'Pilih minimal 1 PDF atau isi manual context.'
+    return
+  }
+
+  const mcqCount = Number(aiGenerateForm.mcqCount)
+  const essayCount = Number(aiGenerateForm.essayCount)
+  if (!Number.isFinite(mcqCount) || mcqCount < 0 || mcqCount > 50) {
+    aiGenerateError.value = 'MCQ count harus 0-50.'
+    return
+  }
+  if (!Number.isFinite(essayCount) || essayCount < 0 || essayCount > 50) {
+    aiGenerateError.value = 'Essay count harus 0-50.'
+    return
+  }
+  if (mcqCount + essayCount <= 0) {
+    aiGenerateError.value = 'Minimal generate 1 soal (MCQ atau Essay).'
+    return
+  }
+
+  aiGenerateStatus.value = 'loading'
+
+  try {
+    // Backend will apply replace by default (apply_to_quiz=true).
+    const res = await services.quizzes.generateDraft(moduleId.value, sessionId.value, {
+      source_mode: 'session_contents',
+      content_ids: ids.length ? ids : undefined,
+      manual_context: manual || undefined,
+      apply_to_quiz: true,
+      mcq_count: mcqCount,
+      essay_count: essayCount,
+      difficulty: aiGenerateForm.difficulty,
+      locale: aiGenerateForm.locale,
+    })
+
+    if (res?.success === false) throw new Error(res?.message || 'Gagal generate draft')
+
+    const data = res?.data || res || {}
+    const warnings = Array.isArray(data?.warnings) ? data.warnings : []
+    aiGenerateWarnings.value = warnings
+
+    aiGenerateOpen.value = false
+    await loadQuiz({ force: true })
+    activeTab.value = 'questions'
+  } catch (e) {
+    aiGenerateError.value = e?.message || 'Gagal generate soal'
+  } finally {
+    aiGenerateStatus.value = 'idle'
   }
 }
 
@@ -1665,6 +2443,14 @@ async function selectAttempt(a) {
         reviewer_feedback: item.reviewer_feedback ?? '',
       }
     }
+
+    // Ensure drafts exist for essay rows even if essayReviewItems doesn't include them.
+    for (const row of attemptAnswerRows.value) {
+      if (row.questionType !== 'essay') continue
+      const key = String(row.questionId)
+      if (reviewDraftByQuestionId.value[key]) continue
+      reviewDraftByQuestionId.value[key] = { manual_points: 0, reviewer_feedback: '' }
+    }
   } catch (e) {
     attemptDetailStatus.value = 'error'
     attemptDetailError.value = e?.message || 'Gagal memuat attempt'
@@ -1684,10 +2470,19 @@ const essayReviewItems = computed(() => {
       question_id: a.question_id || a.questionId || a.id,
       question_text: a.question_text || a.questionText || '',
       essay_answer: a.essay_answer || a.essayAnswer || '',
+      question_points: Number(a.question_points ?? a.questionPoints ?? NaN),
       manual_points: a.manual_points ?? a.manualPoints,
       reviewer_feedback: a.reviewer_feedback ?? a.reviewerFeedback,
     }))
     .filter((a) => a.question_id)
+})
+
+const reviewableEssayItems = computed(() => {
+  return essayReviewItems.value.filter((x) => {
+    const hasAnswer = String(x.essay_answer || '').trim().length > 0
+    const hasExistingScore = Number.isFinite(Number(x.manual_points))
+    return hasAnswer || hasExistingScore
+  })
 })
 
 function pickFirst(obj, keys) {
@@ -1755,6 +2550,25 @@ function findQuestionById(qid) {
   return questions.value.find((q) => Number(q.id || q.question_id || q.questionId) === id) || null
 }
 
+function essayMaxPoints(itemOrQuestionId) {
+  // Prefer attempt snapshot points if present.
+  if (itemOrQuestionId && typeof itemOrQuestionId === 'object') {
+    const qp = Number(itemOrQuestionId.question_points)
+    if (Number.isFinite(qp)) return qp
+    const qid = itemOrQuestionId.question_id
+    if (qid != null) {
+      const q = findQuestionById(qid)
+      const pts = Number(q?.points)
+      return Number.isFinite(pts) ? pts : NaN
+    }
+    return NaN
+  }
+
+  const q = findQuestionById(itemOrQuestionId)
+  const pts = Number(q?.points)
+  return Number.isFinite(pts) ? pts : NaN
+}
+
 function findOptionById(q, optionId) {
   if (!q) return null
   const id = Number(optionId)
@@ -1769,6 +2583,13 @@ function findCorrectOption(q) {
   return opts.find((o) => Boolean(o.is_correct ?? o.isCorrect)) || null
 }
 
+function formatPoints(n) {
+  const v = Number(n)
+  if (!Number.isFinite(v)) return ''
+  // Keep UI stable for fractional points like 3.33.
+  return (Math.round(v * 100) / 100).toFixed(2)
+}
+
 const attemptAnswerRows = computed(() => {
   const d = attemptDetail.value
   if (!d) return []
@@ -1781,6 +2602,20 @@ const attemptAnswerRows = computed(() => {
       const questionText =
         q?.question_text || q?.questionText || a.question_text || a.questionText || `Question #${questionId || idx + 1}`
 
+      const questionType = String(q?.question_type || q?.questionType || a.question_type || a.questionType || '').toLowerCase()
+
+      const possiblePoints = (() => {
+        const qpAttempt = pickFirst(a, ['question_points', 'questionPoints'])
+        const qpn = Number(qpAttempt)
+        if (Number.isFinite(qpn)) return qpn
+
+        const qp = Number(q?.points)
+        if (Number.isFinite(qp)) return qp
+        const ap = pickFirst(a, ['points', 'points_possible', 'pointsPossible', 'max_points', 'maxPoints'])
+        const n = Number(ap)
+        return Number.isFinite(n) ? n : NaN
+      })()
+
       const selectedOptionId = pickFirst(a, ['selected_option_id', 'selectedOptionId', 'option_id', 'optionId'])
       const selectedOpt = selectedOptionId != null ? findOptionById(q, selectedOptionId) : null
       const correctOpt = findCorrectOption(q)
@@ -1790,133 +2625,226 @@ const attemptAnswerRows = computed(() => {
         selectedOpt?.optionText ||
         a.selected_option_text ||
         a.selectedOptionText ||
+        a.option_text ||
+        a.optionText ||
         (selectedOptionId != null ? `Option #${selectedOptionId}` : 'Tidak menjawab')
 
       const correctLabel =
         correctOpt?.option_text ||
         correctOpt?.optionText ||
+        a.correct_option_text ||
+        a.correctOptionText ||
         (correctOpt ? '' : '')
 
       const isCorrectRaw = pickFirst(a, ['is_correct', 'isCorrect'])
-      const isCorrect =
-        typeof isCorrectRaw === 'boolean'
-          ? isCorrectRaw
-          : selectedOpt
-            ? Boolean(selectedOpt.is_correct ?? selectedOpt.isCorrect)
-            : null
+      const isCorrect = (() => {
+        // Normalize aggressively: backend may send 0/1, "0"/"1", true/false.
+        if (isCorrectRaw != null && isCorrectRaw !== '') {
+          const parsed = toBoolLoose(isCorrectRaw)
+          if (parsed != null) return parsed
+          const n = Number(isCorrectRaw)
+          if (Number.isFinite(n)) return n === 1
+        }
+        if (selectedOpt) return isCorrectOption(selectedOpt)
+        return null
+      })()
 
-      const possiblePoints = Number(q?.points ?? a.points ?? a.points_possible ?? a.pointsPossible ?? NaN)
       const awardedRaw = pickFirst(a, ['awarded_points', 'awardedPoints', 'points_awarded', 'pointsAwarded', 'earned_points', 'earnedPoints'])
-      const awardedPoints = Number.isFinite(Number(awardedRaw))
-        ? Number(awardedRaw)
-        : (Number.isFinite(possiblePoints) && isCorrect === true)
-          ? possiblePoints
-          : (Number.isFinite(possiblePoints) && isCorrect === false)
-            ? 0
-            : NaN
+      const manualRaw = pickFirst(a, ['manual_points', 'manualPoints'])
+      const autoRaw = pickFirst(a, ['auto_points', 'autoPoints'])
+      const essayAnswer = String(pickFirst(a, ['essay_answer', 'essayAnswer', 'answer_text', 'answerText']) || '').trim()
+      const hasManual = Number.isFinite(Number(manualRaw))
+      const awardedPoints = (() => {
+        // MCQ: rely on correctness + snapshot points for display.
+        // Some backends may return awarded_points/auto_points=0 even when is_correct=1.
+        if (questionType === 'mcq' && Number.isFinite(possiblePoints) && isCorrect != null) {
+          return isCorrect ? possiblePoints : 0
+        }
 
-      const correctnessLabel = isCorrect == null ? '' : isCorrect ? 'BENAR' : 'SALAH'
+        // Backend attempt payload uses auto_points/manual_points.
+        const autoPts = Number(autoRaw)
+        const manualPts = Number(manualRaw)
+        if (Number.isFinite(autoPts) || Number.isFinite(manualPts)) {
+          return (Number.isFinite(autoPts) ? autoPts : 0) + (Number.isFinite(manualPts) ? manualPts : 0)
+        }
+
+        // Some backends keep awarded_points stale (eg 0) even after manual grading.
+        if (Number.isFinite(Number(awardedRaw))) return Number(awardedRaw)
+
+        // Essay (unreviewed): keep 0 so totals still move for MCQ.
+        if (questionType === 'essay' && essayAnswer) {
+          return 0
+        }
+
+        return NaN
+      })()
+
+      const correctnessLabel =
+        questionType === 'mcq'
+          ? (isCorrect == null ? '' : isCorrect ? 'BENAR' : 'SALAH')
+          : (hasManual ? 'REVIEWED' : '')
 
       const pointsLabel = Number.isFinite(possiblePoints)
         ? Number.isFinite(awardedPoints)
-          ? `${awardedPoints}/${possiblePoints} poin`
-          : `${possiblePoints} poin`
+          ? `${formatPoints(awardedPoints)}/${formatPoints(possiblePoints)} poin`
+          : `${formatPoints(possiblePoints)} poin`
         : ''
+
+      const finalSelectedLabel = questionType === 'essay'
+        ? (essayAnswer || 'Tidak menjawab')
+        : selectedLabel
 
       return {
         index: idx + 1,
         questionId: String(questionId || idx),
         questionText,
-        selectedLabel,
+        questionType,
+        selectedLabel: finalSelectedLabel,
         correctLabel,
         correctnessLabel,
         possiblePoints,
         awardedPoints,
         pointsLabel,
+        pendingEssay: questionType === 'essay' && Boolean(essayAnswer) && !hasManual,
+        essayAnswer,
       }
     })
 })
 
-const attemptComputedTotals = computed(() => {
+const attemptScoreSummary = computed(() => {
+  const d = attemptDetail.value
   const rows = attemptAnswerRows.value
+  if (!d && !rows.length) return { possible: NaN, awarded: NaN, percent: NaN, pendingEssay: 0 }
+
+  // Contract: final_score_percent (0..100) is UI source of truth.
+  const percentRaw = pickFirst(d, ['final_score_percent', 'finalScorePercent'])
+  const p0 = Number(percentRaw)
+  if (Number.isFinite(p0)) {
+    const normalized = p0 <= 1 ? p0 * 100 : p0
+    const percent = Math.max(0, Math.min(100, normalized))
+    const pendingEssay = String(d?.status || '').toLowerCase().includes('pending') ? 1 : 0
+    return { possible: 100, awarded: percent, percent, pendingEssay }
+  }
+
+  // Prefer backend aggregate fields if present.
+  const totalRaw = pickFirst(d, ['total_points', 'totalPoints'])
+  const finalRaw = pickFirst(d, ['final_score', 'finalScore'])
+  const autoRaw = pickFirst(d, ['auto_score', 'autoScore'])
+  const manualRaw = pickFirst(d, ['manual_score', 'manualScore'])
+
+  const total = Number(totalRaw)
+  const final = Number(finalRaw)
+  const autoScore = Number(autoRaw)
+  const manualScore = Number(manualRaw)
+
+  if (Number.isFinite(total) && total > 0 && (Number.isFinite(final) || Number.isFinite(autoScore) || Number.isFinite(manualScore))) {
+    const awarded = Number.isFinite(final)
+      ? final
+      : (Number.isFinite(autoScore) ? autoScore : 0) + (Number.isFinite(manualScore) ? manualScore : 0)
+
+    const awardedForPercent = Math.max(0, Math.min(total, awarded))
+    let percent = (awardedForPercent / total) * 100
+    if (Number.isFinite(percent)) percent = Math.max(0, Math.min(100, percent))
+    const pendingEssay = String(d?.status || '').toLowerCase().includes('pending') ? 1 : 0
+    return { possible: total, awarded, percent, pendingEssay }
+  }
+
+  // Fallback: sum per-question rows.
+  if (!rows.length) return { possible: NaN, awarded: NaN, percent: NaN, pendingEssay: 0 }
+
   let possible = 0
   let awarded = 0
-  let hasPossible = false
-  let hasAwarded = false
+  let pendingEssay = 0
 
   for (const r of rows) {
-    if (Number.isFinite(r.possiblePoints)) {
-      possible += r.possiblePoints
-      hasPossible = true
-    }
-    if (Number.isFinite(r.awardedPoints)) {
-      awarded += r.awardedPoints
-      hasAwarded = true
-    }
+    if (Number.isFinite(r.possiblePoints)) possible += r.possiblePoints
+    if (Number.isFinite(r.awardedPoints)) awarded += r.awardedPoints
+    if (r.pendingEssay) pendingEssay += 1
   }
 
-  return {
-    possible: hasPossible ? possible : NaN,
-    awarded: hasAwarded ? awarded : NaN,
-  }
+  let percent = possible > 0 ? (awarded / possible) * 100 : NaN
+  if (Number.isFinite(percent)) percent = Math.max(0, Math.min(100, percent))
+  return { possible, awarded, percent, pendingEssay }
 })
 
 const attemptScoreLabel = computed(() => {
-  const d = attemptDetail.value
-  if (!d) return '-'
-
-  const percentRaw = pickFirst(d, ['score', 'score_percent', 'scorePercent', 'percentage', 'percent'])
-  const percent = Number.isFinite(Number(percentRaw)) ? Number(percentRaw) : NaN
-  if (Number.isFinite(percent)) return `${percent}`
-
-  const totalRaw = pickFirst(d, ['total_points', 'totalPoints', 'earned_points', 'earnedPoints'])
-  const total = Number.isFinite(Number(totalRaw)) ? Number(totalRaw) : NaN
-  const maxRaw = pickFirst(d, ['max_points', 'maxPoints', 'total_possible_points', 'totalPossiblePoints'])
-  const max = Number.isFinite(Number(maxRaw)) ? Number(maxRaw) : NaN
-  if (Number.isFinite(total) && Number.isFinite(max)) return `${total}/${max}`
-
-  const { awarded, possible } = attemptComputedTotals.value
-  if (Number.isFinite(awarded) && Number.isFinite(possible)) return `${awarded}/${possible}`
-
-  return '-'
+  const s = attemptScoreSummary.value
+  if (!Number.isFinite(s.percent)) return '-'
+  const label = `${s.percent.toFixed(2)}`
+  if (s.pendingEssay > 0) return `${label} (menunggu review)`
+  return label
 })
 
 const attemptPassingLabel = computed(() => {
-  const pass = Number(quiz.value?.passing_score ?? quiz.value?.passingScore)
+  const pass = passingScoreThreshold.value
   if (!Number.isFinite(pass)) return ''
 
   const d = attemptDetail.value
-  const percentRaw = pickFirst(d, ['score', 'score_percent', 'scorePercent', 'percentage', 'percent'])
-  const percent = Number.isFinite(Number(percentRaw)) ? Number(percentRaw) : NaN
-  if (Number.isFinite(percent)) return percent >= pass ? 'Lulus' : 'Tidak lulus'
-
-  // If no percentage, try compute from totals.
-  const { awarded, possible } = attemptComputedTotals.value
-  if (Number.isFinite(awarded) && Number.isFinite(possible) && possible > 0) {
-    const p = (awarded / possible) * 100
-    return p >= pass ? 'Lulus' : 'Tidak lulus'
+  const passedRaw = pickFirst(d, ['passed'])
+  if (passedRaw != null) {
+    const b = toBoolLoose(passedRaw)
+    if (b === true) return 'Lulus'
+    if (b === false) return 'Tidak lulus'
   }
 
-  return ''
+  const s = attemptScoreSummary.value
+  if (!Number.isFinite(s.percent)) return ''
+  if (s.pendingEssay > 0) return ''
+  return s.percent >= pass ? 'Lulus' : 'Tidak lulus'
+})
+
+const canGradeEssayForAttempt = computed(() => {
+  if (!canManage.value) return false
+  const st = String(attemptDetail.value?.status || '').toLowerCase()
+  // Backend only allows grading when attempt is pending review.
+  return st.includes('pending')
 })
 
 async function saveReview() {
+  if (!canManage.value) return
+  if (!selectedAttemptId.value) return
+
+  if (!canGradeEssayForAttempt.value) {
+    reviewError.value = 'Attempt quiz ini tidak dalam status yang bisa dinilai essai.'
+    return
+  }
+
   reviewStatus.value = 'loading'
   reviewError.value = ''
+
   try {
-    const reviews = essayReviewItems.value.map((item) => {
-      const draft = reviewDraftByQuestionId.value[String(item.question_id)] || {}
+    const d = attemptDetail.value
+    const answers = Array.isArray(d?.answers) ? d.answers : Array.isArray(d?.data?.answers) ? d.data.answers : []
+    const essayAnswers = answers.filter((a) => String(a?.question_type || a?.questionType || '').toLowerCase() === 'essay')
+    const reviewTargets = essayAnswers.filter((a) => String(a?.essay_answer || a?.essayAnswer || '').trim())
+
+    if (!reviewTargets.length) {
+      throw new Error('Tidak ada jawaban essay yang bisa direview.')
+    }
+
+    const reviews = reviewTargets.map((a) => {
+      const qid = a?.question_id || a?.questionId || a?.id
+      const draft = reviewDraftByQuestionId.value[String(qid)] || {}
+
+      const maxPts = Number(a?.question_points ?? a?.questionPoints)
+      const rawPts = Number(draft.manual_points ?? 0)
+      const safePts = Number.isFinite(rawPts) ? Math.max(0, rawPts) : 0
+      const clampedPts = Number.isFinite(maxPts) ? Math.min(safePts, maxPts) : safePts
+
       return {
-        question_id: item.question_id,
-        manual_points: Number(draft.manual_points ?? 0),
+        question_id: qid,
+        manual_points: clampedPts,
         reviewer_feedback: String(draft.reviewer_feedback || '').trim(),
       }
     })
 
     const res = await services.quizzes.reviewAttempt(moduleId.value, sessionId.value, selectedAttemptId.value, { reviews })
     if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan review')
-    // refresh detail
+
+    // Refresh attempt + attempts list so aggregates update.
     await selectAttempt({ id: selectedAttemptId.value })
+    await loadAttempts({ force: true })
+    if (studentScoreOpen.value) await openStudentScore()
   } catch (e) {
     reviewError.value = e?.message || 'Gagal menyimpan review'
   } finally {
@@ -1924,17 +2852,29 @@ async function saveReview() {
   }
 }
 
-function prettyJson(obj) {
-  try {
-    return JSON.stringify(obj, null, 2)
-  } catch {
-    return String(obj)
-  }
-}
-
 function isImageDataUrl(value) {
   const s = String(value || '')
   return s.startsWith('data:image/')
+}
+
+function isCorrectOption(opt) {
+  const v = opt?.is_correct ?? opt?.isCorrect
+  if (typeof v === 'boolean') return v
+  if (typeof v === 'number') return v === 1
+  const s = String(v ?? '').trim().toLowerCase()
+  if (!s) return false
+  if (s === 'true' || s === '1' || s === 'yes') return true
+  return false
+}
+
+function toBoolLoose(value) {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value === 1
+  const s = String(value ?? '').trim().toLowerCase()
+  if (!s) return null
+  if (s === 'true' || s === '1' || s === 'yes') return true
+  if (s === 'false' || s === '0' || s === 'no') return false
+  return null
 }
 
 function onPickOptionImage(e, idx) {

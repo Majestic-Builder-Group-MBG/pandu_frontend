@@ -17,8 +17,8 @@
         </div>
       </header>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <StatCard title="Kelas Diampu" :value="stats.classes">
+       <div class="grid gap-4 sm:grid-cols-2">
+         <StatCard title="Kelas Diampu" :value="classesCount">
           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
             <path
               d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"
@@ -45,7 +45,7 @@
           </svg>
         </StatCard>
 
-        <StatCard title="Kursus Aktif" :value="stats.activeCourses" variant="ocean">
+         <StatCard title="Kursus Aktif" :value="activeCoursesCount" variant="ocean">
           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
             <path d="M4 6.5L12 3l8 3.5-8 3.5-8-3.5Z" stroke="currentColor" stroke-width="2" />
             <path d="M4 10.5l8 3.5 8-3.5" stroke="currentColor" stroke-width="2" />
@@ -54,16 +54,16 @@
         </StatCard>
       </div>
 
-      <div class="ink-card p-6">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Quiz Terbaru</p>
-            <p class="mt-2 text-4xl font-semibold leading-none">{{ stats.newQuizzes }}</p>
-            <p class="mt-2 text-sm font-semibold text-ink/60">Ada kuis yang baru dibuat minggu ini.</p>
-          </div>
-          <span class="ink-chip bg-accent">NEW</span>
-        </div>
-      </div>
+       <div class="ink-card p-6">
+         <div class="flex items-start justify-between gap-4">
+           <div>
+             <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Quiz Terbaru</p>
+             <p class="mt-2 text-4xl font-semibold leading-none">{{ quizzesCount }}</p>
+             <p class="mt-2 text-sm font-semibold text-ink/60">{{ quizzesSummaryLabel }}</p>
+           </div>
+           <span class="ink-chip bg-accent">NEW</span>
+         </div>
+       </div>
 
       <div class="ink-card p-6">
         <div class="flex items-center justify-between gap-4">
@@ -119,10 +119,22 @@
             <span class="ink-chip bg-accent/40">{{ quizzes.length }}</span>
           </div>
           <div class="mt-4 space-y-3">
-            <div v-for="q in quizzes" :key="q.id" class="rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
+            <RouterLink
+              v-for="q in quizzes"
+              :key="q.id"
+              :to="q.to"
+              class="block rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm transition hover:bg-accent/20"
+              :title="`Buka quiz: ${q.title}`"
+            >
               <p class="text-sm font-extrabold">{{ q.title }}</p>
               <p class="mt-1 text-xs font-bold text-ink/60">{{ q.module }} - {{ q.questions }} soal</p>
-            </div>
+            </RouterLink>
+
+            <p v-if="quizzesStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat kuis...</p>
+            <p v-else-if="quizzesStatus === 'error'" class="text-sm font-semibold text-ink/60">
+              Gagal memuat kuis: <span class="font-extrabold">{{ quizzesError }}</span>
+            </p>
+            <p v-else-if="!quizzes.length" class="text-sm font-semibold text-ink/60">Belum ada kuis.</p>
           </div>
         </div>
       </div>
@@ -161,27 +173,6 @@
         />
       </div>
 
-      <div class="ink-card p-6">
-        <h3 class="text-base font-semibold">MVP Checklist</h3>
-        <div class="mt-4 space-y-3">
-          <div class="flex items-center justify-between rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-            <p class="text-sm font-extrabold">Modules</p>
-            <span class="ink-chip bg-accent/40">OK</span>
-          </div>
-          <div class="flex items-center justify-between rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-            <p class="text-sm font-extrabold">Materi</p>
-            <span class="ink-chip bg-accent/40">OK</span>
-          </div>
-          <div class="flex items-center justify-between rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-            <p class="text-sm font-extrabold">Kuis</p>
-            <span class="ink-chip bg-accent/40">OK</span>
-          </div>
-          <div class="flex items-center justify-between rounded-2xl border-2 border-ink bg-paper p-4 shadow-ink-sm">
-            <p class="text-sm font-extrabold">Kalender</p>
-            <span class="ink-chip bg-accent/40">OK</span>
-          </div>
-        </div>
-      </div>
     </aside>
   </div>
 </template>
@@ -207,6 +198,7 @@ const services = getServices()
 
 const displayName = computed(() => auth.user?.name || 'User')
 const roleLabel = computed(() => auth.user?.role || 'student')
+const isStudent = computed(() => auth.user?.role === 'student')
 const initials = computed(() => {
   const name = String(displayName.value || '').trim()
   if (!name) return 'U'
@@ -216,10 +208,30 @@ const initials = computed(() => {
   return (first + last).toUpperCase()
 })
 
-const stats = ref({
-  classes: 5,
-  activeCourses: 3,
-  newQuizzes: 5,
+const managedModulesCount = computed(() => {
+  // Use backend capabilities when available.
+  const list = modules.items || []
+  const managed = list.filter((m) => Boolean(m?.capabilities?.canManageSessions || m?.capabilities?.canEdit))
+  // Fallback: for teacher/admin without capabilities, treat visible modules as managed.
+  if (!managed.length && !isStudent.value && list.length) return list.length
+  return managed.length
+})
+
+const classesCount = computed(() => {
+  if (isStudent.value) return enrollments.moduleIds.length
+  return managedModulesCount.value
+})
+
+const activeCoursesCount = computed(() => {
+  if (isStudent.value) return enrollments.moduleIds.length
+  return modules.items.length
+})
+
+const quizzesCount = computed(() => quizzes.value.length)
+const quizzesSummaryLabel = computed(() => {
+  if (!quizzesCount.value) return 'Belum ada kuis yang tersedia.'
+  if (isStudent.value) return 'Kuis yang siap kamu kerjakan.'
+  return 'Kuis yang siap kamu kelola.'
 })
 
 const dashboardEnrollKey = ref('')
@@ -246,7 +258,7 @@ onMounted(async () => {
     // error shown in UI
   }
 
-  await loadUpcomingSessions()
+  await Promise.all([loadUpcomingSessions(), loadDashboardQuizzes()])
 })
 
 async function enrollFromDashboard() {
@@ -263,6 +275,7 @@ async function enrollFromDashboard() {
     dashboardEnrollKey.value = ''
     await enrollments.fetchMine({ services, force: true })
     await modules.fetchAll({ services, force: true })
+    await loadDashboardQuizzes({ force: true })
   } catch (e) {
     dashboardEnrollError.value = e?.message || 'Gagal enroll'
   } finally {
@@ -270,11 +283,105 @@ async function enrollFromDashboard() {
   }
 }
 
+function pickList(res) {
+  return normalizeListResponse(res)
+}
+
+async function mapWithConcurrency(items, limit, fn) {
+  const queue = [...items]
+  const workers = Array.from({ length: Math.max(1, Number(limit) || 1) }, async () => {
+    while (queue.length) {
+      const item = queue.shift()
+      // eslint-disable-next-line no-await-in-loop
+      await fn(item)
+    }
+  })
+  await Promise.all(workers)
+}
+
+async function loadDashboardQuizzes({ force = false } = {}) {
+  // Best-effort dashboard list: find existing quizzes across accessible modules.
+  if (!force && quizzes.value.length) return
+
+  quizzesStatus.value = 'loading'
+  quizzesError.value = ''
+  quizzes.value = []
+
+  try {
+    const isStudent = auth.user?.role === 'student'
+
+    const accessibleModules = isStudent
+      ? modules.items.filter((m) => enrollments.moduleIdSet.has(Number(m.id)))
+      : modules.items
+
+    // Avoid too many calls on large datasets.
+    const moduleIds = accessibleModules
+      .map((m) => Number(m.id))
+      .filter((id) => Number.isFinite(id) && id > 0)
+      .slice(0, 12)
+
+    const sessionPairs = []
+
+    await mapWithConcurrency(moduleIds, 4, async (mid) => {
+      try {
+        const res = await services.sessions.list(mid)
+        const list = pickList(res)
+        for (const s of list) {
+          const sid = Number(s?.id)
+          if (!Number.isFinite(sid) || sid <= 0) continue
+          sessionPairs.push({ moduleId: mid, sessionId: sid })
+        }
+      } catch {
+        // ignore
+      }
+    })
+
+    const found = []
+    await mapWithConcurrency(sessionPairs.slice(0, 80), 6, async ({ moduleId, sessionId }) => {
+      try {
+        const res = await services.quizzes.getQuiz(moduleId, sessionId)
+        const data = res?.data || res
+        if (res?.success === false) return
+
+        const isPublished = Boolean(data?.is_published ?? data?.isPublished)
+        if (isStudent && !isPublished) return
+
+        const qs = Array.isArray(data?.questions)
+          ? data.questions
+          : Array.isArray(data?.data?.questions)
+            ? data.data.questions
+            : []
+
+        found.push({
+          id: `${moduleId}-${sessionId}`,
+          moduleId,
+          sessionId,
+          title: data?.title || `Quiz Sesi #${sessionId}`,
+          module: modules.getById(moduleId)?.title || `Modul #${moduleId}`,
+          questions: qs.length,
+          to: `/courses/${moduleId}/sessions/${sessionId}/quiz`,
+        })
+      } catch (e) {
+        // 404 = quiz belum dibuat, 403 = student belum boleh lihat
+        if (e?.status === 404 || e?.status === 403) return
+      }
+    })
+
+    found.sort((a, b) => (b.sessionId || 0) - (a.sessionId || 0))
+    quizzes.value = found.slice(0, 6)
+    quizzesStatus.value = 'success'
+  } catch (e) {
+    quizzesStatus.value = 'error'
+    quizzesError.value = e?.message || 'Gagal memuat kuis'
+  }
+}
+
 const quizzes = ref([
-  { id: 1, title: 'Quiz 1 - Dasar Matrix', module: 'Aljabar Linear Matrix', questions: 10 },
-  { id: 2, title: 'Quiz 2 - Semantik', module: 'Semantik Tingkat Lanjut', questions: 8 },
-  { id: 3, title: 'Quiz 1 - Visual', module: 'Logik Visual 101', questions: 12 },
+  // hydrated from API
 ])
+
+const quizzesStatus = ref('idle')
+const quizzesError = ref('')
 
 const upcomingStatus = ref('idle')
 const upcomingError = ref('')

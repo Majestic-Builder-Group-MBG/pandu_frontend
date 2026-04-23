@@ -60,6 +60,35 @@ export class QuizzesService {
     })
   }
 
+  generateDraft(
+    moduleId,
+    sessionId,
+    {
+      source_mode = 'session_contents',
+      content_ids,
+      manual_context,
+      apply_to_quiz = true,
+      mcq_count,
+      essay_count,
+      difficulty,
+      locale,
+    } = {}
+  ) {
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/quiz/generate-draft`, {
+      method: 'POST',
+      body: {
+        source_mode,
+        content_ids: Array.isArray(content_ids) ? content_ids : undefined,
+        manual_context: manual_context || undefined,
+        apply_to_quiz: Boolean(apply_to_quiz),
+        mcq_count,
+        essay_count,
+        difficulty,
+        locale,
+      },
+    })
+  }
+
   addQuestion(
     moduleId,
     sessionId,
@@ -138,6 +167,18 @@ export class QuizzesService {
     return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/quiz/attempts/${attemptId}/review`, {
       method: 'PATCH',
       body: { reviews: Array.isArray(reviews) ? reviews : [] },
+    })
+  }
+
+  getLeaderboard(moduleId, sessionId, { mode } = {}) {
+    const q = mode ? `?mode=${encodeURIComponent(String(mode))}` : ''
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/quiz/leaderboard${q}`, { method: 'GET' })
+  }
+
+  setLeaderboardVisibility(moduleId, sessionId, { leaderboard_visibility } = {}) {
+    return this.api.request(`/api/modules/${moduleId}/sessions/${sessionId}/quiz/leaderboard-visibility`, {
+      method: 'PATCH',
+      body: { leaderboard_visibility },
     })
   }
 }

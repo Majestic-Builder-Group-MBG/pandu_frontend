@@ -259,6 +259,7 @@ Bagian ini mencatat endpoint yang dipanggil oleh frontend berdasarkan implementa
 ### Quiz
 
 1. `GET /api/modules/:moduleId/sessions/:sessionId/quiz`
+1. `POST /api/modules/:moduleId/sessions/:sessionId/quiz/generate-draft` (teacher/admin)
 1. `POST /api/modules/:moduleId/sessions/:sessionId/quiz` (multipart: `title`, `description?`, `banner?`, `duration_minutes?`, `max_attempts?`, `passing_score?`)
 1. `PUT /api/modules/:moduleId/sessions/:sessionId/quiz` (multipart: `title?`, `description?`, `banner?`, `remove_banner?`, `duration_minutes?`, `max_attempts?`, `passing_score?`)
 1. `PATCH /api/modules/:moduleId/sessions/:sessionId/quiz/publish` (body: `{ is_published: boolean }`)
@@ -305,71 +306,56 @@ Service worker ada di `public/sw.js`.
 
 Integrasi client ada di `src/services/push/webPush.js` dan dipakai oleh `useSessionReminder`.
 
-## Rencana: AI Generate Soal Quiz (Planned)
+## AI Generate Draft Soal (Teacher/Admin)
 
-Fitur ini belum ada implementasinya, tetapi **rencananya** akan ditambahkan untuk membantu teacher/admin membuat soal otomatis berdasarkan materi modul per sesi.
+Frontend menyediakan tombol **AI Generate** di halaman quiz sesi: `/courses/:moduleId/sessions/:sessionId/quiz`.
 
-### Tujuan
+Konsepnya: backend menghasilkan *draft* soal berdasarkan konteks **ketat per sesi** (tidak lintas sesi), lalu frontend menyimpan soal tersebut lewat endpoint add question.
 
-1. Mengurangi waktu pembuatan soal.
-1. Menjaga konsistensi format soal.
-1. Menghasilkan variasi soal dari sumber yang sama (materi sesi).
+### Sumber Konteks
 
-### User Flow (Rencana)
+Saat ini UI dibatasi untuk **PDF saja** (materi sesi dengan `content_type=file` dan `mime_type` PDF). Konten image/video akan di-skip oleh backend.
 
-1. Teacher/admin membuka halaman quiz sesi: `/courses/:moduleId/sessions/:sessionId/quiz`.
-1. Pada tab `Soal`, tersedia tombol `AI Generate`.
-1. User memilih parameter generate.
-1. Sistem membuat draft soal (belum publish), user bisa review dan edit sebelum menyimpan.
+Jika tidak ada PDF yang bisa dipakai, user wajib mengisi `manual_context`.
 
-### Parameter Generate (Rencana)
+### Endpoint
 
-1. `source`: materi sesi saat ini (contents: text, url, file yang bisa diekstrak)
-1. `count_mcq`: jumlah soal pilihan ganda
-1. `count_essay`: jumlah soal essay
-1. `difficulty`: easy | medium | hard
-1. `language`: id | en
-1. `taxonomy`: optional (mis. Bloom level)
-1. `constraints`: optional (panjang soal, gaya, larangan tertentu)
+1. `POST /api/modules/:moduleId/sessions/:sessionId/quiz/generate-draft`
 
-### Kontrak API (Usulan)
-
-Endpoint di bawah adalah usulan agar FE dan BE punya titik temu lebih awal. Nama endpoint bisa disesuaikan.
-
-1. `POST /api/modules/:moduleId/sessions/:sessionId/quiz/ai-generate`
-
-Contoh request:
+Contoh payload:
 
 ```json
 {
-  "count_mcq": 10,
-  "count_essay": 2,
+  "source_mode": "session_contents",
+  "content_ids": [70, 71],
+  "manual_context": "Fallback jika konten tidak bisa diekstrak",
+  "apply_to_quiz": true,
+  "mcq_count": 5,
+  "essay_count": 3,
   "difficulty": "medium",
-  "language": "id",
-  "include_session_contents": true
+  "locale": "id"
 }
 ```
 
-Contoh response (draft questions):
+Contoh response (ringkas):
 
 ```json
 {
-  "questions": [
-    {
-      "question_type": "mcq",
-      "question_text": "...",
-      "points": 10,
-      "options": [
-        { "option_text": "...", "is_correct": true },
-        { "option_text": "...", "is_correct": false }
-      ],
-      "explanation": "..."
+  "success": true,
+  "data": {
+    "warnings": ["..."],
+    "draft": {
+      "mcq": [{ "question_type": "mcq", "question_text": "...", "options": [] }],
+      "essay": [{ "question_type": "essay", "question_text": "..." }]
     }
-  ]
+  }
 }
 ```
 
-Catatan implementasi FE (rencana): hasil generate akan langsung dipetakan ke format yang sudah dipakai `QuizzesService.addQuestion()` agar bisa disimpan satu per satu atau batch.
+Catatan FE:
+
+1. FE akan memanggil `generate-draft` lalu menyimpan soal ke quiz menggunakan `POST /quiz/questions`.
+1. Jika quiz belum dibuat, FE akan membuat shell quiz terlebih dahulu (create quiz) lalu menambahkan soal.
 
 ## Catatan Implementasi Penting
 

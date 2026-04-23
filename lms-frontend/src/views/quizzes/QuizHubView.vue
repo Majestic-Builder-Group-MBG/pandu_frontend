@@ -105,12 +105,21 @@
               </div>
 
               <RouterLink
+                v-if="canOpenQuizFromHub(s.id)"
                 :to="`/courses/${selectedModuleId}/sessions/${s.id}/quiz`"
                 class="shrink-0 rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
               >
                 {{ canManage ? 'Kelola Quiz' : 'Buka Quiz' }}
               </RouterLink>
             </div>
+
+            <p v-if="sessionsMetaStatusById[s.id] === 'loading'" class="mt-3 text-xs font-bold text-ink/50">
+              Mengecek ketersediaan kuis...
+            </p>
+
+            <p v-else-if="sessionsMetaById[s.id]?.reason" class="mt-3 text-xs font-bold text-ink/50">
+              {{ sessionsMetaById[s.id].reason }}
+            </p>
           </article>
         </div>
       </main>
@@ -161,6 +170,11 @@ const sessionsStatus = ref('idle')
 const sessionsError = ref('')
 const sessions = ref([])
 
+// Per-session availability used by the Quiz hub. We only show the "Kelola/Buka" button
+// once the session has an open schedule AND the quiz already exists.
+const sessionsMetaById = ref({})
+const sessionsMetaStatusById = ref({})
+
 function mapSession(s) {
   return {
     id: s?.id,
@@ -203,10 +217,86 @@ async function loadSessions({ force = false } = {}) {
     const list = normalizeListResponse(res)
     sessions.value = list.map(mapSession).sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
     sessionsStatus.value = 'success'
+
+    // Hydrate availability for current module sessions.
+    await hydrateSessionsMeta()
   } catch (e) {
     sessionsStatus.value = 'error'
     sessionsError.value = e?.message || 'Gagal memuat sesi'
   }
+}
+
+function clearSessionMeta() {
+  sessionsMetaById.value = {}
+  sessionsMetaStatusById.value = {}
+}
+
+function setSessionMeta(sessionId, meta) {
+  sessionsMetaById.value = { ...sessionsMetaById.value, [sessionId]: meta }
+}
+
+function setSessionMetaStatus(sessionId, status) {
+  sessionsMetaStatusById.value = { ...sessionsMetaStatusById.value, [sessionId]: status }
+}
+
+async function hydrateSessionsMeta() {
+  if (!selectedModuleId.value) return
+  const moduleId = selectedModuleId.value
+  const ids = sessions.value.map((s) => s.id).filter(Boolean)
+  if (!ids.length) return
+
+  await Promise.all(
+    ids.map(async (sessionId) => {
+      setSessionMetaStatus(sessionId, 'loading')
+
+      // 1) Session must have schedule open_at set.
+      let openAt = null
+      try {
+        const res = await services.sessions.getSchedule(moduleId, sessionId)
+        openAt = res?.data?.open_at || res?.data?.openAt || res?.open_at || res?.openAt || null
+      } catch {
+        openAt = null
+      }
+
+      if (!openAt) {
+        setSessionMeta(sessionId, { ok: false, reason: 'Sesi belum dibuka (jadwal open_at belum diset).' })
+        setSessionMetaStatus(sessionId, 'success')
+        return
+      }
+
+      // 2) Quiz must exist. If backend returns 404 (not created) or 403 (not visible for student), hide.
+      try {
+        const res = await services.quizzes.getQuiz(moduleId, sessionId)
+        const data = res?.data || res || {}
+        const isPublished = Boolean(data?.is_published ?? data?.isPublished)
+
+        // Student: still require published.
+        if (!canManage.value && !isPublished) {
+          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dipublish.' })
+          setSessionMetaStatus(sessionId, 'success')
+          return
+        }
+
+        setSessionMeta(sessionId, { ok: true })
+        setSessionMetaStatus(sessionId, 'success')
+      } catch (e) {
+        const status = e?.status
+        if (status === 404) {
+          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dibuat.' })
+        } else if (status === 403) {
+          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum tersedia.' })
+        } else {
+          setSessionMeta(sessionId, { ok: false, reason: 'Gagal mengecek quiz.' })
+        }
+        setSessionMetaStatus(sessionId, 'success')
+      }
+    })
+  )
+}
+
+function canOpenQuizFromHub(sessionId) {
+  const meta = sessionsMetaById.value?.[sessionId]
+  return Boolean(meta?.ok)
 }
 
 onMounted(async () => {
@@ -235,6 +325,7 @@ watch(selectedModuleId, async () => {
   sessions.value = []
   sessionsStatus.value = selectedModuleId.value ? 'loading' : 'idle'
   sessionsError.value = ''
+  clearSessionMeta()
   if (selectedModuleId.value) await loadSessions({ force: true })
 })
 </script>
