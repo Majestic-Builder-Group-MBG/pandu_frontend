@@ -2,7 +2,7 @@
   <header class="sticky top-0 z-50 border-b-2 border-ink bg-paper/80 backdrop-blur">
     <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
       <RouterLink to="/dashboard" class="flex items-center gap-3">
-        <img :src="logoPandu" alt="Pandu" class="h-10 w-10 shrink-0 object-contain" />
+        <img :src="logoPandu" alt="Pandu" class="h-10 w-14 shrink-0 object-contain" />
         <span class="font-display text-sm font-semibold tracking-tight text-ink">Pandu</span>
       </RouterLink>
 

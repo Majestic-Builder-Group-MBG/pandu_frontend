@@ -61,7 +61,6 @@
              <p class="mt-2 text-4xl font-semibold leading-none">{{ quizzesCount }}</p>
              <p class="mt-2 text-sm font-semibold text-ink/60">{{ quizzesSummaryLabel }}</p>
            </div>
-           <span class="ink-chip bg-accent">NEW</span>
          </div>
        </div>
 
@@ -139,6 +138,19 @@
         </div>
       </div>
 
+    </section>
+
+    <aside class="space-y-6">
+      <div ref="calendarEl" class="ink-card p-6">
+        <MiniCalendar
+          :year="calendar.year"
+          :month="calendar.month"
+          :highlights="calendarHighlights"
+          @prev="prevMonth"
+          @next="nextMonth"
+        />
+      </div>
+
       <div class="ink-card p-6">
         <div class="flex items-center justify-between gap-4">
           <h2 class="text-lg font-semibold">Sesi Mendatang</h2>
@@ -159,18 +171,6 @@
           <div v-else-if="!sessions.length" class="text-sm font-semibold text-ink/60">Belum ada sesi terjadwal.</div>
           <SessionCard v-else v-for="s in sessions" :key="s.id" :session="s" />
         </div>
-      </div>
-    </section>
-
-    <aside class="space-y-6">
-      <div ref="calendarEl" class="ink-card p-6">
-        <MiniCalendar
-          :year="calendar.year"
-          :month="calendar.month"
-          :highlights="calendarHighlights"
-          @prev="prevMonth"
-          @next="nextMonth"
-        />
       </div>
 
     </aside>
@@ -344,7 +344,8 @@ async function loadDashboardQuizzes({ force = false } = {}) {
         if (res?.success === false) return
 
         const isPublished = Boolean(data?.is_published ?? data?.isPublished)
-        if (isStudent && !isPublished) return
+        // Dashboard hanya menampilkan kuis yang sudah dipublish.
+        if (!isPublished) return
 
         const qs = Array.isArray(data?.questions)
           ? data.questions

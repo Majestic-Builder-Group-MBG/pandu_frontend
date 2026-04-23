@@ -189,19 +189,41 @@
               </button>
             </div>
 
-            <div v-if="canManageSessions" class="relative">
+            <div v-if="canManageSessions" class="flex items-center gap-2">
               <button
-                ref="contentsMenuButtonRef"
                 type="button"
-                class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                aria-label="Opsi materi"
-                @click="toggleContentsMenu"
+                class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Atur jadwal sesi"
+                title="Atur jadwal sesi"
                 :disabled="!selectedSessionId"
+                @click="openScheduleFromToolbar"
               >
                 <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-                  <path d="M5 12h.01M12 12h.01M19 12h.01" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+                  <path d="M7 3v3M17 3v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M4 8h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path
+                    d="M6 5h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  />
+                  <path d="M12 12v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M12 12h3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
                 </svg>
               </button>
+
+              <div class="relative">
+                <button
+                  ref="contentsMenuButtonRef"
+                  type="button"
+                  class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  aria-label="Opsi materi"
+                  @click="toggleContentsMenu"
+                  :disabled="!selectedSessionId"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                    <path d="M5 12h.01M12 12h.01M19 12h.01" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+                  </svg>
+                </button>
 
                 <div
                   v-if="contentsMenuOpen"
@@ -251,8 +273,9 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="bg-paper px-6 pb-6">
+          <div class="bg-paper px-6 pb-6">
               <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <p class="text-xs font-bold text-ink/60">
                   Status:
@@ -1114,6 +1137,12 @@ function onDocumentKeydown(event) {
 function onViewportChange() {
   onEnrollMenuViewportChange()
   onContentsMenuViewportChange()
+}
+
+function openScheduleFromToolbar() {
+  if (!selectedSessionId.value) return
+  hideContentsMenu()
+  openScheduleForSession(selectedSessionId.value)
 }
 
 function onSessionRenamed(payload) {

@@ -1,15 +1,13 @@
 <template>
   <header
     :class="
-      isLanding
-        ? [
-            'fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 transition-transform duration-200 will-change-transform',
-            headerHidden ? '-translate-y-[160%]' : 'translate-y-0',
-          ]
-        : 'sticky top-0 z-50 border-b-2 border-ink bg-paper/85 backdrop-blur'
+      [
+        'fixed left-1/2 top-4 z-50 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 transition-transform duration-200 will-change-transform',
+        headerHidden ? '-translate-y-[160%]' : 'translate-y-0',
+      ]
     "
   >
-    <div :class="isLanding ? 'rounded-full border-2 border-ink bg-paper/85 backdrop-blur shadow-ink' : ''">
+    <div class="rounded-full border-2 border-ink bg-paper/85 backdrop-blur shadow-ink">
       <div class="mx-auto flex w-full max-w-6xl items-center px-4 py-4">
         <RouterLink to="/" class="flex items-center gap-3">
           <img :src="logoPandu" alt="Pandu" class="h-8 w-16 shrink-0 object-contain" />
@@ -44,7 +42,7 @@
             to="/contact"
             class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink"
           >
-            Contact
+            Demo
           </RouterLink>
 
         </nav>
@@ -96,11 +94,7 @@
       v-if="mobileMenuOpen"
       id="mobile-nav"
       ref="mobileMenuRef"
-      :class="
-        isLanding
-          ? 'mt-2 rounded-2xl border-2 border-ink bg-paper/95 backdrop-blur shadow-ink sm:hidden'
-          : 'border-t-2 border-ink bg-paper/95 backdrop-blur sm:hidden'
-      "
+      class="mt-2 rounded-2xl border-2 border-ink bg-paper/95 backdrop-blur shadow-ink sm:hidden"
     >
       <div class="mx-auto w-full max-w-6xl px-4 py-4">
         <div class="grid gap-2">
@@ -135,7 +129,7 @@
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
             @click="onMobileNavClick"
           >
-            Contact
+            Demo
           </RouterLink>
 
           <RouterLink
@@ -191,7 +185,7 @@ function toggleMobileMenu() {
 
 function onScroll() {
   const y = window.scrollY || 0
-  const shouldAnimate = isLanding.value
+  const shouldAnimate = true
 
   if (!shouldAnimate || mobileMenuOpen.value) {
     headerHidden.value = false

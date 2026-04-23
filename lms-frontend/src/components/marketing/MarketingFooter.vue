@@ -24,7 +24,7 @@
           <div class="grid gap-2">
             <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Company</p>
             <RouterLink to="/about" class="footer-link">About</RouterLink>
-            <RouterLink to="/contact" class="footer-link">Contact</RouterLink>
+            <RouterLink to="/contact" class="footer-link">Demo</RouterLink>
             <RouterLink to="/login" class="footer-link">Login</RouterLink>
           </div>
 

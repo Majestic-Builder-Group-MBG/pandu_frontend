@@ -2,7 +2,7 @@
   <div>
     <MarketingHeader />
 
-    <main class="mx-auto w-full max-w-6xl px-4 py-10">
+    <main class="mx-auto w-full max-w-6xl px-4 pb-10 pt-28 sm:pt-32">
       <section class="ink-card bg-paper-grid p-8">
         <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Legal</p>
         <h1 class="mt-2 text-4xl font-extrabold">Terms & Conditions</h1>
