@@ -2,8 +2,14 @@
   <div v-if="open" class="fixed inset-0 z-50">
     <div class="absolute inset-0 bg-ink/40" @click="$emit('close')" />
     <div class="absolute inset-0 overflow-y-auto">
-      <div class="mx-auto flex min-h-dvh w-full max-w-xl items-center px-4 py-10">
-        <div class="ink-card w-full bg-paper p-6 shadow-ink">
+      <div
+        class="mx-auto flex min-h-dvh w-full max-w-xl px-4 py-10"
+        :class="fullHeight ? 'items-stretch py-4 sm:items-center sm:py-10' : 'items-center'"
+      >
+        <div
+          class="ink-card w-full bg-paper p-6 shadow-ink"
+          :class="fullHeight ? 'flex h-[calc(100dvh-2rem)] flex-col overflow-hidden sm:h-auto sm:overflow-visible' : ''"
+        >
           <header class="flex items-start justify-between gap-4">
             <div>
               <p v-if="kicker" class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">{{ kicker }}</p>
@@ -11,6 +17,7 @@
               <p v-if="subtitle" class="mt-2 text-sm font-semibold text-ink/60">{{ subtitle }}</p>
             </div>
             <button
+              v-if="showClose"
               type="button"
               class="grid h-10 w-10 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm"
               aria-label="Close"
@@ -22,7 +29,7 @@
             </button>
           </header>
 
-          <div class="mt-6">
+          <div class="mt-6" :class="fullHeight ? 'min-h-0 flex-1 overflow-y-auto' : ''">
             <slot />
           </div>
 
@@ -43,6 +50,8 @@ const props = defineProps({
   title: { type: String, required: true },
   kicker: { type: String, default: '' },
   subtitle: { type: String, default: '' },
+  fullHeight: { type: Boolean, default: false },
+  showClose: { type: Boolean, default: true },
 })
 
 const emit = defineEmits(['close'])

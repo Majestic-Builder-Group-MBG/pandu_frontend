@@ -26,7 +26,7 @@
 
               <!-- Logo -->
               <header>
-                <p class="font-display text-sm md:text-md font-semibold text-white/95">Scholarly</p>
+                <p class="font-display text-sm md:text-md font-semibold text-white/95">Pandu</p>
                 <p class="mt-1 text-[7px] md:text-[8px] font-extrabold uppercase tracking-[0.24em] text-white/75">
                   Academy
                 </p>
@@ -78,13 +78,13 @@
                 <!-- Nama -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Nama</span>
-                  <input v-model.trim="name" class="ink-input py-2.5" placeholder="Siswa 1" autocomplete="name" />
+                  <input v-model.trim="name" class="ink-input py-2.5" placeholder="Budi Santoso" autocomplete="name" />
                 </label>
 
                 <!-- Email -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Email</span>
-                  <input v-model.trim="email" type="email" class="ink-input py-2.5" placeholder="student1@mail.com"
+                  <input v-model.trim="email" type="email" class="ink-input py-2.5" placeholder="nama@pandu.id"
                     autocomplete="email" />
                 </label>
 
@@ -93,7 +93,7 @@
                   <span class="text-sm font-semibold">Password</span>
                   <div class="relative">
                     <input v-model="password" :type="showPassword ? 'text' : 'password'" class="ink-input py-2.5 pr-12"
-                      placeholder="password123" autocomplete="new-password" />
+                      placeholder="***" autocomplete="new-password" />
 
                     <!-- ❗ TIDAK DIUBAH -->
                     <button type="button"
@@ -163,10 +163,10 @@ import { RouterLink, useRouter } from 'vue-router'
 
 import BaseButton from '@/components/ui/BaseButton.vue'
 import continuousLearning from '@/assets/images/continuous-learning.svg'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const router = useRouter()
-const services = createServices()
+const services = getServices()
 
 const name = ref('')
 const email = ref('')

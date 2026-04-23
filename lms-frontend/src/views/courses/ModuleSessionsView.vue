@@ -164,99 +164,154 @@
             />
           </div>
         </div>
-        <div v-if="showTips" class="ink-card px-6 pt-6 pb-4">
-          <div class="flex items-start justify-between gap-4">
-            <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Tips</p>
-          </div>
-          <p class="mt-2 pb-2 text-sm font-semibold text-ink/70">Klik sesi untuk melihat materi. Konten bisa berupa file, link, atau teks ringkasan.</p>
-          <div class="flex justify-start">
-            <button
-              type="button"
-              class="h-7 w-9 place-items-center hover:bg-accent/40 hover:rounded-xl"
-              @click="showTips = false"
-              aria-label="Tutup tips"
-              title="Tutup"
-            >
-            <span class="text-sm flex align-center font-semibold text-ink/50">Close</span>
-          </button>
-          
-          </div>
-        </div>
       </aside>
 
       <main class="space-y-4">
-        <article class="ink-card overflow-hidden">
+        <article class="ink-card overflow-visible">
           <div class="flex items-center justify-between gap-4 px-6 pt-6">
-            <h2 class="text-lg font-semibold">Materi</h2>
+            <div class="flex items-center gap-2">
+              <h2 class="text-lg font-semibold">Materi</h2>
 
-            <div v-if="canManageSessions" class="relative">
               <button
-                ref="contentsMenuButtonRef"
+                v-if="canShowReminder"
                 type="button"
-                class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                aria-label="Opsi materi"
-                @click="toggleContentsMenu"
+                class="inline-flex items-center gap-1 rounded-xl border-2 px-2.5 py-1 text-xs font-extrabold shadow-ink-sm"
+                :class="reminderEnabled ? 'border-emerald-700 bg-emerald-50 text-emerald-800' : 'border-ink bg-paper text-ink/80'"
+                :disabled="reminderStatus === 'loading' || reminderStatus === 'saving' || isSessionAlreadyOpen"
+                :title="isSessionAlreadyOpen ? 'Sesi sudah dibuka' : 'Ingatkan saat sesi dibuka'"
+                @click="toggleReminder"
+              >
+                <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+                  <path d="M12 3a5 5 0 0 0-5 5v2.3c0 .8-.3 1.6-.8 2.2L5 14.2c-.5.7 0 1.8.9 1.8h12.2c.9 0 1.4-1.1.9-1.8l-1.2-1.7a3.8 3.8 0 0 1-.8-2.2V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                  <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                {{ reminderButtonLabel }}
+              </button>
+            </div>
+
+            <div v-if="canManageSessions" class="flex items-center gap-2">
+              <button
+                type="button"
+                class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Atur jadwal sesi"
+                title="Atur jadwal sesi"
                 :disabled="!selectedSessionId"
+                @click="openScheduleFromToolbar"
               >
                 <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-                  <path d="M5 12h.01M12 12h.01M19 12h.01" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+                  <path d="M7 3v3M17 3v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M4 8h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path
+                    d="M6 5h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  />
+                  <path d="M12 12v4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                  <path d="M12 12h3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
                 </svg>
               </button>
 
-              <div
-                v-if="contentsMenuOpen"
-                ref="contentsMenuRef"
-                class="fixed z-[60] rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
-                :style="contentsMenuStyle"
-              >
+              <div class="relative">
                 <button
+                  ref="contentsMenuButtonRef"
                   type="button"
-                  class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-extrabold hover:bg-accent/30"
-                  @click="openAddContent"
+                  class="grid h-9 w-9 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                  aria-label="Opsi materi"
+                  @click="toggleContentsMenu"
+                  :disabled="!selectedSessionId"
                 >
-                  <span class="grid h-8 w-8 place-items-center">
-                    <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-                      <path d="M12 5v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                      <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
-                    </svg>
-                  </span>
-                  Tambah Materi
+                  <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                    <path d="M5 12h.01M12 12h.01M19 12h.01" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" />
+                  </svg>
                 </button>
+
+                <div
+                  v-if="contentsMenuOpen"
+                  ref="contentsMenuRef"
+                  class="fixed z-[60] rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
+                  :style="contentsMenuStyle"
+                >
+                  <button
+                    type="button"
+                    class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-extrabold hover:bg-accent/30"
+                    @click="openAddContent"
+                  >
+                   <span class="grid h-8 w-8 place-items-center">
+                     <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                       <path d="M12 5v14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                       <path d="M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                     </svg>
+                   </span>
+                    Tambah Materi
+                  </button>
+
+                  <RouterLink
+                    v-if="selectedSessionId"
+                    :to="quizLink"
+                    class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-extrabold hover:bg-accent/30"
+                    @click="hideContentsMenu"
+                  >
+                    <span class="grid h-8 w-8 place-items-center">
+                      <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+                        <path
+                          d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10-4.5 10-10 10Z"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        />
+                        <path
+                          d="M9.2 9.2a3 3 0 1 1 4.6 2.6c-.9.6-1.8 1.3-1.8 2.7v.7"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                        <path d="M12 18h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                      </svg>
+                    </span>
+                    Tambah Kuis
+                  </RouterLink>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="bg-paper px-6 pb-6">
-            <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <p class="text-xs font-bold text-ink/60">
-                Dibuka:
-                <span class="font-extrabold text-ink/80">{{ scheduleLabel }}</span>
-              </p>
-            </div>
+              <div v-if="selectedSessionId" class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p class="text-xs font-bold text-ink/60">
+                  Status:
+                  <span class="font-extrabold text-ink/80">{{ scheduleLabel }}</span>
+                </p>
+                <p v-if="canShowReminder && reminderError" class="text-xs font-bold text-rose-700">{{ reminderError }}</p>
+              </div>
 
-            <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
-            <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
-            <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
-              Sesi ini belum dibuka.
+              <p v-if="contentsStatus === 'idle'" class="text-sm font-semibold text-ink/60">Pilih sesi untuk melihat materi.</p>
+              <p v-else-if="contentsStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat materi...</p>
+              <p v-else-if="contentsStatus === 'locked'" class="text-sm font-semibold text-ink/60">
+                Sesi ini belum dibuka.
               <span v-if="scheduleOpenAt" class="font-extrabold">Dibuka {{ scheduleHuman }}.</span>
             </p>
             <p v-else-if="contentsStatus === 'error'" class="text-sm font-semibold text-ink/60">
               Gagal memuat materi: <span class="font-extrabold">{{ contentsError }}</span>
             </p>
 
-            <div v-else-if="!contents.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
-              <p class="text-sm font-extrabold">Belum ada materi.</p>
-              <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
-            </div>
+             <div v-else-if="!contentsWithQuiz.length" class="mt-4 rounded-2xl border-2 border-ink bg-cloud p-6 text-center shadow-ink-sm">
+               <p class="text-sm font-extrabold">Belum ada materi.</p>
+               <p class="mt-2 text-sm font-semibold text-ink/60">Materi dapat berupa berkas, tautan, atau ringkasan teks.</p>
+             </div>
 
             <div v-else class="mt-4 space-y-3">
-              <article v-for="c in contents" :key="c.id" class="relative rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm">
+              <article
+                v-for="c in contentsWithQuiz"
+                :key="c.type === 'quiz' ? `quiz-${selectedSessionId}` : c.id"
+                class="relative rounded-2xl border-2 border-ink bg-paper p-5 shadow-ink-sm"
+              >
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0">
                     <p class="text-sm font-extrabold">{{ c.title }}</p>
+                    <p v-if="c.type === 'quiz'" class="mt-1 text-xs font-bold text-ink/50">Kuis</p>
                   </div>
 
-                  <div v-if="canManageSessions" class="relative">
+                  <div v-if="canManageSessions && c.type !== 'quiz'" class="relative">
                     <button
                       type="button"
                       class="grid h-9 w-9 place-items-center rounded-xl border-2 border-transparent text-ink/70 hover:border-ink hover:bg-accent/20"
@@ -270,7 +325,7 @@
 
                     <div
                       v-if="contentActionsOpenId === c.id"
-                      class="absolute right-0 top-10 z-10 w-44 rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
+                      class="absolute right-0 top-10 z-[80] w-44 rounded-2xl border-2 border-ink bg-paper p-2 shadow-ink"
                     >
                       <button
                         type="button"
@@ -306,6 +361,23 @@
                 </div>
 
                 <div class="mt-3">
+                  <template v-if="c.type === 'quiz'">
+                    <p v-if="c.text" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                      <RouterLink
+                        :to="quizLink"
+                        class="inline-flex items-center gap-2 rounded-xl border-2 border-ink bg-accent px-4 py-2 text-sm font-extrabold shadow-ink-sm hover:bg-accent/80"
+                      >
+                        {{ canManageSessions ? 'Kelola Kuis' : 'Buka Kuis' }}
+                        <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
+                          <path d="M14 3h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          <path d="M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          <path d="M21 14v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                      </RouterLink>
+                    </div>
+                  </template>
+
                   <p v-if="c.type === 'text'" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
 
                 <a
@@ -644,19 +716,27 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import defaultBanner from '@/assets/images/module-banner-default.svg'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
+import { useSessionContents } from '@/composables/moduleSessions/useSessionContents'
+import { useModuleSessions } from '@/composables/moduleSessions/useModuleSessions'
+import { useSessionReminder } from '@/composables/moduleSessions/useSessionReminder'
 import { useAuthStore } from '@/stores/auth'
+import { useEnrollmentsStore } from '@/stores/enrollments'
 import { useModulesStore } from '@/stores/modules'
 import { useModuleBannersStore } from '@/stores/moduleBanners'
+import { useMediaPreview } from '@/composables/moduleSessions/useMediaPreview'
+import { useSessionSchedule } from '@/composables/moduleSessions/useSessionSchedule'
+import { useFloatingMenu } from '@/composables/ui/useFloatingMenu'
 import SessionItem from '@/components/sessions/SessionItem.vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
-const services = createServices()
+const services = getServices()
 
 const auth = useAuthStore()
+const enrollments = useEnrollmentsStore()
 
 const modules = useModulesStore()
 const banners = useModuleBannersStore()
@@ -668,110 +748,135 @@ const preselectSessionId = computed(() => {
   return Number.isFinite(n) && n > 0 ? n : null
 })
 
-const sessions = ref([])
-const sessionsStatus = ref('idle')
-const sessionsError = ref('')
-
-const selectedSessionId = ref(null)
-
 const showTips = ref(true)
+
+const quizLink = computed(() => {
+  if (!selectedSessionId.value) return `/courses/${moduleId.value}`
+  return `/courses/${moduleId.value}/sessions/${selectedSessionId.value}/quiz`
+})
+
+ const quizPreview = ref(null)
+ const quizPreviewStatus = ref('idle')
+
+ const contentsWithQuiz = computed(() => {
+   if (!quizPreview.value) return contents.value
+   return [quizPreview.value, ...contents.value]
+ })
+
+ async function loadQuizPreview() {
+   quizPreview.value = null
+   quizPreviewStatus.value = 'loading'
+
+   // Jangan tampilkan kuis jika sesi belum "dibuka" (open_at belum diset).
+   if (!scheduleOpenAt.value) {
+     quizPreviewStatus.value = 'success'
+     return
+   }
+
+   try {
+     const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
+     const data = res?.data || res
+
+     const isPublished = Boolean(data?.is_published ?? data?.isPublished)
+
+     // Student hanya lihat quiz yang sudah dipublish.
+     if (!canManageSessions.value && !isPublished) {
+       quizPreviewStatus.value = 'success'
+       return
+     }
+
+     quizPreview.value = {
+       id: `quiz-${selectedSessionId.value}`,
+       type: 'quiz',
+       title: data?.title || 'Kuis',
+       text: data?.description || ' ',
+     }
+     quizPreviewStatus.value = 'success'
+   } catch (e) {
+     // 404 = quiz belum dibuat, 403 = student belum boleh lihat. Jangan tampilkan card.
+     quizPreviewStatus.value = 'error'
+     quizPreview.value = null
+   }
+ }
 
 const canManageSessions = computed(() => {
   const r = auth.user?.role
   return r === 'teacher' || r === 'admin'
 })
 
-const editOpen = ref(false)
-const editSession = ref(null)
+const {
+  sessions,
+  sessionsStatus,
+  sessionsError,
+  selectedSessionId,
+  deleteOpen,
+  deleteLoading,
+  deleteMessage,
+  createSessionOpen,
+  createSessionLoading,
+  createSessionError,
+  createSessionTitle,
+  createSessionOpenAtLocal,
+  loadSessions,
+  selectSession,
+  openCreateSession,
+  closeCreateSession,
+  createSession,
+  openDelete,
+  closeDelete,
+  confirmDelete,
+  resetSessionsState,
+} = useModuleSessions({
+  services,
+  moduleId,
+  preselectSessionId,
+  canManageSessions,
+  onDeleteError: (message) => {
+    contentsError.value = message
+  },
+})
 
-const deleteOpen = ref(false)
-const deleteSession = ref(null)
-const deleteLoading = ref(false)
-
-const createSessionOpen = ref(false)
-const createSessionLoading = ref(false)
-const createSessionError = ref('')
-const createSessionTitle = ref('')
-const createSessionOpenAtLocal = ref('')
-
-const menuOpen = ref(false)
-const menuRef = ref(null)
-const menuButtonRef = ref(null)
-const menuStyle = ref({})
+const {
+  menuOpen,
+  menuStyle,
+  buttonRef: menuButtonRef,
+  menuRef,
+  toggle: toggleEnrollMenuInternal,
+  hide: hideEnrollMenu,
+  onDocumentClick: onEnrollMenuDocumentClick,
+  onViewportChange: onEnrollMenuViewportChange,
+} = useFloatingMenu({ preferredWidth: 176, minWidth: 140, estimatedHeight: 156 })
 const isEditingEnrollKey = ref(false)
 const enrollKeyDraft = ref('')
 const deleteModuleOpen = ref(false)
 const moduleActionLoading = ref('')
 const feedback = ref({ type: '', message: '' })
 
-const contents = ref([])
-const contentsStatus = ref('idle')
-const contentsError = ref('')
+const {
+  menuOpen: contentsMenuOpen,
+  menuStyle: contentsMenuStyle,
+  buttonRef: contentsMenuButtonRef,
+  menuRef: contentsMenuRef,
+  toggle: toggleContentsMenu,
+  hide: hideContentsMenu,
+  onDocumentClick: onContentsMenuDocumentClick,
+  onViewportChange: onContentsMenuViewportChange,
+} = useFloatingMenu({ preferredWidth: 200, minWidth: 160, estimatedHeight: 96 })
 
-const downloadStatusById = ref({})
 
-const fileViewStatusById = ref({})
-const fileViewErrorById = ref({})
+const {
+  mediaPreviewOpen,
+  mediaPreviewStatus,
+  mediaPreviewError,
+  mediaPreviewUrl,
+  mediaPreviewKind,
+  mediaPreviewContent,
+  openMediaPreview: openMediaPreviewInternal,
+  closeMediaPreview,
+} = useMediaPreview()
 
-const contentsMenuOpen = ref(false)
-const contentsMenuRef = ref(null)
-const contentsMenuButtonRef = ref(null)
-const contentsMenuStyle = ref({})
 
-const contentActionsOpenId = ref(null)
-
-const contentModalOpen = ref(false)
-const contentModalMode = ref('add')
-const contentModalLoading = ref(false)
-const contentModalError = ref('')
-const editingContentId = ref(null)
-const editingContentOriginalType = ref('')
-const editingContentOriginalTitle = ref('')
-const editingContentOriginalUrl = ref('')
-const editingContentOriginalText = ref('')
-const editingContentOriginalFileName = ref('')
-
-const contentType = ref('url')
-const contentTitle = ref('')
-const contentUrl = ref('')
-const contentText = ref('')
-const contentFile = ref(null)
-const contentFileInputRef = ref(null)
-
-const deleteContentOpen = ref(false)
-const deleteContentItem = ref(null)
-const deleteContentLoading = ref(false)
-
-const mediaPreviewOpen = ref(false)
-const mediaPreviewStatus = ref('idle')
-const mediaPreviewError = ref('')
-const mediaPreviewUrl = ref('')
-const mediaPreviewKind = ref('image')
-const mediaPreviewContent = ref(null)
-
-const contentFileName = computed(() => contentFile.value?.name || '')
-
-const contentFileLabel = computed(() => {
-  // kalau user pilih file baru
-  if (contentFileName.value) return contentFileName.value
-
-  // kalau bukan edit mode
-  if (contentModalMode.value !== 'edit') return 'Belum ada file'
-
-  const cur =
-    String(editingContentOriginalFileName.value || '').trim() ||
-    String(editingContentOriginalTitle.value || '').trim()
-
-  // if (!cur) return 'Current file: (tersimpan)'
-
-  // return `Current file: ${cur}`
-})
-
-function looksLikeFileName(name) {
-  return name.includes('.') && !name.endsWith('.')
-}
-
-const moduleItem = computed(() => modules.items.find((m) => Number(m.id) === moduleId.value))
+const moduleItem = computed(() => modules.getById(moduleId.value))
 
 const moduleTitle = computed(() => moduleItem.value?.title || `Modul #${moduleId.value}`)
 const moduleDesc = computed(() => moduleItem.value?.desc || ' ')
@@ -795,38 +900,100 @@ const feedbackClasses = computed(() => {
   return 'border-rose-700 bg-rose-50 text-rose-900'
 })
 
-const selectedSession = computed(() => sessions.value.find((s) => s.id === selectedSessionId.value) || null)
-const selectedSessionTitle = computed(() => selectedSession.value?.title || 'Pilih sesi')
-const selectedSessionDesc = computed(() => selectedSession.value?.description || ' ')
-
 const isStudent = computed(() => auth.user?.role === 'student')
-
-const scheduleStatus = ref('idle')
-const scheduleError = ref('')
-const scheduleOpenAt = ref(null)
-
-const scheduleOpen = ref(false)
-const scheduleSaving = ref(false)
-const scheduleModalError = ref('')
-const scheduleDraftLocal = ref('')
-
-const scheduleHuman = computed(() => {
-  if (!scheduleOpenAt.value) return ''
-  const d = new Date(scheduleOpenAt.value)
-  if (Number.isNaN(d.getTime())) return ''
-  try {
-    return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  } catch {
-    return d.toLocaleString()
-  }
+const isStudentAllowedModule = computed(() => {
+  if (!isStudent.value) return true
+  return enrollments.moduleIdSet.has(moduleId.value)
 })
 
-const scheduleLabel = computed(() => {
-  if (!selectedSessionId.value) return '-'
-  if (scheduleStatus.value === 'loading') return 'memuat...'
-  if (scheduleError.value) return 'gagal memuat'
-  if (!scheduleOpenAt.value) return 'belum dibuka'
-  return scheduleHuman.value || scheduleOpenAt.value
+const {
+  contents,
+  contentsStatus,
+  contentsError,
+  downloadStatusById,
+  fileViewStatusById,
+  fileViewErrorById,
+  contentActionsOpenId,
+  contentModalOpen,
+  contentModalMode,
+  contentModalLoading,
+  contentModalError,
+  contentType,
+  contentTitle,
+  contentUrl,
+  contentText,
+  contentFileInputRef,
+  contentFileLabel,
+  deleteContentOpen,
+  deleteContentMessage,
+  deleteContentLoading,
+  onPickContentFile,
+  triggerContentFilePicker,
+  openAddContent,
+  openEditContent,
+  closeContentModal,
+  saveContent,
+  openDeleteContent,
+  closeDeleteContent,
+  confirmDeleteContent,
+  loadContents,
+  downloadFile,
+  viewFile,
+  toggleContentActions,
+  closeContentActions,
+  setLockedState,
+  resetContentsState,
+} = useSessionContents({
+  services,
+  moduleId,
+  selectedSessionId,
+  openMediaPreview,
+  hideContentsMenu,
+})
+
+const {
+  scheduleStatus,
+  scheduleError,
+  scheduleOpenAt,
+  scheduleOpen,
+  scheduleSaving,
+  scheduleModalError,
+  scheduleDraftLocal,
+  scheduleHuman,
+  scheduleLabel,
+  isLockedForStudent,
+  loadSchedule,
+  openScheduleForSession,
+  closeScheduleModal,
+  saveSchedule,
+  clearSchedule,
+  resetScheduleState,
+} = useSessionSchedule({
+  services,
+  moduleId,
+  selectedSessionId,
+  canManageSessions,
+  isStudent,
+  onLocked: setLockedState,
+  onUnlocked: loadContents,
+})
+
+const {
+  reminderStatus,
+  reminderError,
+  reminderEnabled,
+  reminderButtonLabel,
+  isSessionAlreadyOpen,
+  canShowReminder,
+  loadReminder,
+  toggleReminder,
+  resetReminderState,
+} = useSessionReminder({
+  services,
+  moduleId,
+  selectedSessionId,
+  isStudent,
+  scheduleOpenAt,
 })
 
 const deleteModuleMessage = computed(() => {
@@ -834,6 +1001,20 @@ const deleteModuleMessage = computed(() => {
 })
 
 onMounted(async () => {
+  if (isStudent.value && !enrollments.moduleIds.length) {
+    try {
+      await enrollments.fetchMine({ services, force: true })
+    } catch {
+      // ignore; API access checks still apply
+    }
+  }
+
+  if (isStudent.value && !isStudentAllowedModule.value) {
+    contentsStatus.value = 'error'
+    contentsError.value = 'Modul ini tidak termasuk enrollment kamu.'
+    return
+  }
+
   // Ensure modules list exists so title/teacher show.
   if (!modules.items.length) {
     try {
@@ -862,26 +1043,33 @@ onBeforeUnmount(() => {
 })
 
 watch(moduleId, async () => {
-  selectedSessionId.value = null
-  contents.value = []
-  contentsStatus.value = 'idle'
+  if (isStudent.value && !enrollments.moduleIds.length) {
+    try {
+      await enrollments.fetchMine({ services, force: true })
+    } catch {
+      // ignore
+    }
+  }
+
+  if (isStudent.value && !isStudentAllowedModule.value) {
+    contentsStatus.value = 'error'
+    contentsError.value = 'Modul ini tidak termasuk enrollment kamu.'
+    return
+  }
+
+  resetSessionsState()
+  resetContentsState()
   hideEnrollMenu()
   hideContentsMenu()
-  closeContentActions()
-  closeContentModal()
-  closeDeleteContent()
   closeMediaPreview()
-  closeCreateSession()
-  closeScheduleModal()
-  scheduleStatus.value = 'idle'
-  scheduleError.value = ''
-  scheduleOpenAt.value = null
+  resetScheduleState()
+  resetReminderState()
   isEditingEnrollKey.value = false
   deleteModuleOpen.value = false
   moduleActionLoading.value = ''
   feedback.value = { type: '', message: '' }
-  fileViewStatusById.value = {}
-  fileViewErrorById.value = {}
+     quizPreview.value = null
+     quizPreviewStatus.value = 'idle'
   await loadSessions()
   await ensureModuleBanner()
   await ensureEnrollKey()
@@ -928,30 +1116,12 @@ function showFeedback(type, message) {
 }
 
 function toggleEnrollMenu() {
-  menuOpen.value = !menuOpen.value
-  if (menuOpen.value) {
-    updateMenuPosition()
-  }
-}
-
-function hideEnrollMenu() {
-  menuOpen.value = false
+  toggleEnrollMenuInternal()
 }
 
 function onDocumentClick(event) {
-  // Enroll key menu
-  if (menuOpen.value && menuRef.value) {
-    if (!menuRef.value.contains(event.target) && !menuButtonRef.value?.contains(event.target)) {
-      hideEnrollMenu()
-    }
-  }
-
-  // Materi menu
-  if (contentsMenuOpen.value && contentsMenuRef.value) {
-    if (!contentsMenuRef.value.contains(event.target) && !contentsMenuButtonRef.value?.contains(event.target)) {
-      hideContentsMenu()
-    }
-  }
+  onEnrollMenuDocumentClick(event)
+  onContentsMenuDocumentClick(event)
 }
 
 function onDocumentKeydown(event) {
@@ -965,258 +1135,27 @@ function onDocumentKeydown(event) {
 }
 
 function onViewportChange() {
-  if (menuOpen.value) updateMenuPosition()
-  if (contentsMenuOpen.value) updateContentsMenuPosition()
+  onEnrollMenuViewportChange()
+  onContentsMenuViewportChange()
 }
 
-function toggleContentsMenu() {
-  contentsMenuOpen.value = !contentsMenuOpen.value
-  if (contentsMenuOpen.value) updateContentsMenuPosition()
-}
-
-function hideContentsMenu() {
-  contentsMenuOpen.value = false
-}
-
-function updateContentsMenuPosition() {
-  if (!contentsMenuButtonRef.value) return
-
-  const rect = contentsMenuButtonRef.value.getBoundingClientRect()
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
-  const margin = 8
-  const preferredWidth = 200
-  const width = Math.min(preferredWidth, Math.max(160, viewportWidth - margin * 2))
-  const estimatedHeight = 96
-
-  let left = rect.right - width
-  left = Math.max(margin, Math.min(left, viewportWidth - width - margin))
-
-  let top = rect.bottom + 8
-  if (top + estimatedHeight > viewportHeight - margin) {
-    top = Math.max(margin, rect.top - estimatedHeight - 8)
-  }
-
-  contentsMenuStyle.value = {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-  }
-}
-
-function toggleContentActions(contentId) {
-  if (contentActionsOpenId.value === contentId) {
-    closeContentActions()
-    return
-  }
-
-  contentActionsOpenId.value = contentId
-  setTimeout(() => {
-    document.addEventListener(
-      'click',
-      () => {
-        closeContentActions()
-      },
-      { once: true }
-    )
-  }, 0)
-}
-
-function closeContentActions() {
-  contentActionsOpenId.value = null
-}
-
-function onPickContentFile(e) {
-  const f = e?.target?.files?.[0]
-  contentFile.value = f || null
-}
-
-function triggerContentFilePicker() {
-  contentFileInputRef.value?.click?.()
-}
-
-function openAddContent() {
+function openScheduleFromToolbar() {
   if (!selectedSessionId.value) return
   hideContentsMenu()
-  closeContentActions()
-  contentModalMode.value = 'add'
-  contentModalError.value = ''
-  contentModalLoading.value = false
-  editingContentId.value = null
-  editingContentOriginalType.value = ''
-  editingContentOriginalTitle.value = ''
-  editingContentOriginalUrl.value = ''
-  editingContentOriginalText.value = ''
-  editingContentOriginalFileName.value = ''
-  contentType.value = 'url'
-  contentTitle.value = ''
-  contentUrl.value = ''
-  contentText.value = ''
-  contentFile.value = null
-  contentModalOpen.value = true
+  openScheduleForSession(selectedSessionId.value)
 }
 
-function openEditContent(c) {
-  hideContentsMenu()
-  closeContentActions()
-  contentModalMode.value = 'edit'
-  contentModalError.value = ''
-  contentModalLoading.value = false
-  editingContentId.value = c?.id || null
-  editingContentOriginalType.value = c?.type || 'text'
-  editingContentOriginalTitle.value = c?.title || ''
-  editingContentOriginalUrl.value = c?.url || ''
-  editingContentOriginalText.value = c?.text || ''
-  editingContentOriginalFileName.value = c?.fileName || ''
+function onSessionRenamed(payload) {
+  const sessionId = payload?.sessionId
+  const title = String(payload?.title || '').trim()
+  if (!sessionId || !title) return
 
-  contentType.value = editingContentOriginalType.value
-  contentTitle.value = editingContentOriginalTitle.value
-  contentUrl.value = editingContentOriginalUrl.value
-  contentText.value = editingContentOriginalText.value
-  contentFile.value = null
-  contentModalOpen.value = true
+  sessions.value = sessions.value.map((s) => {
+    if (s.id !== sessionId) return s
+    return { ...s, title }
+  })
 }
 
-function closeContentModal() {
-  contentModalOpen.value = false
-  contentModalLoading.value = false
-  contentModalError.value = ''
-  editingContentId.value = null
-  editingContentOriginalType.value = ''
-  editingContentOriginalTitle.value = ''
-  editingContentOriginalUrl.value = ''
-  editingContentOriginalText.value = ''
-  editingContentOriginalFileName.value = ''
-}
-
-async function saveContent() {
-  if (!selectedSessionId.value) return
-
-  contentModalError.value = ''
-
-  const nextType = contentType.value
-  const isEdit = contentModalMode.value === 'edit'
-  const originalType = editingContentOriginalType.value
-
-  if (nextType === 'url' && !contentUrl.value.trim()) {
-    contentModalError.value = 'URL wajib diisi.'
-    return
-  }
-  if (nextType === 'text' && !contentText.value.trim()) {
-    contentModalError.value = 'Isi materi wajib diisi.'
-    return
-  }
-  if (nextType === 'file') {
-    const needsFile = !isEdit || originalType !== 'file'
-    if (needsFile && !contentFile.value) {
-      contentModalError.value = 'File wajib dipilih.'
-      return
-    }
-  }
-
-  contentModalLoading.value = true
-  try {
-    if (contentModalMode.value === 'add') {
-      await services.sessions.addContent(moduleId.value, selectedSessionId.value, {
-        content_type: nextType,
-        title: contentTitle.value,
-        url: nextType === 'url' ? contentUrl.value.trim() : undefined,
-        file: nextType === 'file' ? contentFile.value : undefined,
-        text_content: contentText.value.trim() || undefined,
-      })
-    } else {
-      if (!editingContentId.value) throw new Error('Konten tidak valid')
-
-      const payload = {}
-
-      const isTypeChanged = Boolean(originalType) && nextType !== originalType
-      const isReplacingFile = nextType === 'file' && Boolean(contentFile.value)
-      if (isTypeChanged || isReplacingFile) payload.content_type = nextType
-
-      const nextTitle = contentTitle.value
-      if (nextTitle.trim() || editingContentOriginalTitle.value) payload.title = nextTitle
-
-      if (nextType === 'url') {
-        payload.url = contentUrl.value.trim()
-        payload.text_content = contentText.value.trim()
-      } else if (nextType === 'text') {
-        payload.text_content = contentText.value
-      } else {
-        payload.text_content = contentText.value
-      }
-
-      if (nextType === 'file' && contentFile.value) {
-        payload.file = contentFile.value
-      }
-
-      await services.sessions.updateContent(moduleId.value, selectedSessionId.value, editingContentId.value, payload)
-    }
-
-    await loadContents(selectedSessionId.value)
-    closeContentModal()
-  } catch (e) {
-    contentModalError.value = e?.message || 'Gagal menyimpan materi'
-  } finally {
-    contentModalLoading.value = false
-  }
-}
-
-const deleteContentMessage = computed(() => {
-  const t = deleteContentItem.value?.title || 'materi ini'
-  return `Kamu yakin mau menghapus ${t}? Tindakan ini tidak bisa dibatalkan.`
-})
-
-function openDeleteContent(c) {
-  hideContentsMenu()
-  closeContentActions()
-  deleteContentItem.value = c
-  deleteContentOpen.value = true
-}
-
-function closeDeleteContent() {
-  deleteContentOpen.value = false
-  deleteContentItem.value = null
-  deleteContentLoading.value = false
-}
-
-async function confirmDeleteContent() {
-  if (!deleteContentItem.value?.id || !selectedSessionId.value) return
-  deleteContentLoading.value = true
-  try {
-    await services.sessions.deleteContent(moduleId.value, selectedSessionId.value, deleteContentItem.value.id)
-    await loadContents(selectedSessionId.value)
-  } catch (e) {
-    contentsError.value = e?.message || 'Gagal menghapus materi'
-  } finally {
-    closeDeleteContent()
-  }
-}
-
-function updateMenuPosition() {
-  if (!menuButtonRef.value) return
-
-  const rect = menuButtonRef.value.getBoundingClientRect()
-  const viewportWidth = window.innerWidth
-  const viewportHeight = window.innerHeight
-  const margin = 8
-  const preferredWidth = 176
-  const width = Math.min(preferredWidth, Math.max(140, viewportWidth - margin * 2))
-  const estimatedHeight = 156
-
-  let left = rect.right - width
-  left = Math.max(margin, Math.min(left, viewportWidth - width - margin))
-
-  let top = rect.bottom + 8
-  if (top + estimatedHeight > viewportHeight - margin) {
-    top = Math.max(margin, rect.top - estimatedHeight - 8)
-  }
-
-  menuStyle.value = {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-  }
-}
 
 function startEditEnrollKey() {
   enrollKeyDraft.value = enrollKey.value || ''
@@ -1309,131 +1248,6 @@ async function confirmDeleteModule() {
   }
 }
 
-async function loadSessions() {
-  sessionsStatus.value = 'loading'
-  sessionsError.value = ''
-  try {
-    const res = await services.sessions.list(moduleId.value)
-    const list = normalizeListResponse(res)
-    sessions.value = list
-      .map(mapSession)
-      .sort((a, b) => (a.sortOrder ?? 999) - (b.sortOrder ?? 999))
-
-    sessionsStatus.value = 'success'
-
-    const wanted = preselectSessionId.value
-    if (wanted && sessions.value.some((s) => s.id === wanted)) {
-      selectSession(wanted)
-      return
-    }
-
-    if (!selectedSessionId.value && sessions.value.length) {
-      selectSession(sessions.value[0].id)
-    }
-  } catch (e) {
-    sessionsStatus.value = 'error'
-    sessionsError.value = e?.message || 'Gagal memuat sesi'
-  }
-}
-
-function selectSession(id) {
-  selectedSessionId.value = id
-}
-
-function openCreateSession() {
-  createSessionError.value = ''
-  createSessionTitle.value = ''
-  createSessionOpenAtLocal.value = ''
-  createSessionOpen.value = true
-}
-
-function closeCreateSession() {
-  createSessionOpen.value = false
-  createSessionLoading.value = false
-  createSessionError.value = ''
-}
-
-async function createSession() {
-  if (!canManageSessions.value) return
-  createSessionError.value = ''
-
-  if (!createSessionTitle.value.trim()) {
-    createSessionError.value = 'Judul sesi wajib diisi.'
-    return
-  }
-
-  createSessionLoading.value = true
-  try {
-    const res = await services.sessions.create(moduleId.value, { title: createSessionTitle.value.trim() })
-    const newId = res?.data?.id || res?.id || null
-
-    if (createSessionOpenAtLocal.value && newId) {
-      const d = new Date(createSessionOpenAtLocal.value)
-      if (Number.isNaN(d.getTime())) throw new Error('Format open_at tidak valid. Gunakan format tanggal ISO-8601')
-      await services.sessions.setSchedule(moduleId.value, newId, { open_at: d.toISOString() })
-    }
-
-    await loadSessions()
-    if (newId) selectSession(newId)
-    closeCreateSession()
-  } catch (e) {
-    createSessionError.value = e?.message || 'Gagal membuat sesi'
-  } finally {
-    createSessionLoading.value = false
-  }
-}
-
-function openEdit(s) {
-  editSession.value = s
-  editOpen.value = true
-}
-
-function closeEdit() {
-  editOpen.value = false
-  editSession.value = null
-}
-
-async function onSessionSaved() {
-  // refresh list + current contents
-  await loadSessions()
-  if (selectedSessionId.value) await loadContents(selectedSessionId.value)
-  closeEdit()
-}
-
-const deleteMessage = computed(() => {
-  const t = deleteSession.value?.title || 'sesi ini'
-  return `Kamu yakin mau menghapus ${t}? Tindakan ini tidak bisa dibatalkan.`
-})
-
-function openDelete(s) {
-  deleteSession.value = s
-  deleteOpen.value = true
-}
-
-function closeDelete() {
-  deleteOpen.value = false
-  deleteSession.value = null
-  deleteLoading.value = false
-}
-
-async function confirmDelete() {
-  if (!deleteSession.value?.id) return
-  deleteLoading.value = true
-  try {
-    await services.sessions.delete(moduleId.value, deleteSession.value.id)
-    // Refresh sessions list
-    await loadSessions()
-    // Ensure selection is valid
-    if (selectedSessionId.value === deleteSession.value.id) {
-      selectedSessionId.value = sessions.value[0]?.id || null
-    }
-  } catch (e) {
-    // surface error in main content area
-    contentsError.value = e?.message || 'Gagal menghapus sesi'
-  } finally {
-    closeDelete()
-  }
-}
 
 watch(selectedSessionId, async () => {
   if (!selectedSessionId.value) return
@@ -1442,321 +1256,27 @@ watch(selectedSessionId, async () => {
   closeContentModal()
   closeDeleteContent()
   closeMediaPreview()
+   quizPreview.value = null
+   quizPreviewStatus.value = 'idle'
   await loadSchedule(selectedSessionId.value)
+  await loadReminder()
 
-  const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
-  const isLocked =
-    isStudent.value &&
-    (!scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()))
-  if (isLocked) {
-    contents.value = []
-    contentsError.value = ''
-    contentsStatus.value = 'locked'
+  if (isLockedForStudent()) {
+    setLockedState()
     return
   }
 
-  await loadContents(selectedSessionId.value)
+   await Promise.all([loadContents(), loadQuizPreview()])
 })
 
-async function reloadSelectedContents() {
-  if (!selectedSessionId.value) return
-  // Respect schedule lock for students.
-  const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
-  const isLocked =
-    isStudent.value &&
-    (!scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now()))
-  if (isLocked) {
-    contents.value = []
-    contentsError.value = ''
-    contentsStatus.value = 'locked'
-    return
-  }
-  await loadContents(selectedSessionId.value)
-}
-
-async function loadSchedule(sessionId) {
-  scheduleStatus.value = 'loading'
-  scheduleError.value = ''
-  scheduleOpenAt.value = null
-
-  try {
-    const res = await services.sessions.getSchedule(moduleId.value, sessionId)
-    const openAt = res?.data?.open_at || res?.data?.openAt || res?.open_at || res?.openAt || null
-
-    if (openAt) {
-      const d = new Date(openAt)
-      if (!Number.isNaN(d.getTime())) {
-        scheduleOpenAt.value = d.toISOString()
-      }
-    }
-
-    scheduleStatus.value = 'success'
-  } catch (e) {
-    scheduleStatus.value = 'error'
-    scheduleError.value = e?.message || 'Gagal memuat jadwal'
-  }
-}
-
-function openScheduleModal() {
-  scheduleModalError.value = ''
-  scheduleDraftLocal.value = isoToLocalInput(scheduleOpenAt.value)
-  scheduleOpen.value = true
-}
-
-async function openScheduleForSession(sessionId) {
-  if (!canManageSessions.value) return
-  if (!sessionId) return
-
-  if (selectedSessionId.value !== sessionId) {
-    selectedSessionId.value = sessionId
-  }
-
-  await loadSchedule(sessionId)
-  openScheduleModal()
-}
-
-function closeScheduleModal() {
-  scheduleOpen.value = false
-  scheduleSaving.value = false
-  scheduleModalError.value = ''
-}
-
-async function saveSchedule() {
-  if (!canManageSessions.value || !selectedSessionId.value) return
-
-  scheduleSaving.value = true
-  scheduleModalError.value = ''
-  try {
-    let iso = null
-    if (scheduleDraftLocal.value) {
-      const d = new Date(scheduleDraftLocal.value)
-      if (Number.isNaN(d.getTime())) throw new Error('Format open_at tidak valid. Gunakan format tanggal ISO-8601')
-      iso = d.toISOString()
-    }
-
-    await services.sessions.setSchedule(moduleId.value, selectedSessionId.value, { open_at: iso })
-    await loadSchedule(selectedSessionId.value)
-
-    // Refresh lock state after schedule changes.
-    if (isStudent.value) {
-      const openAt = scheduleOpenAt.value ? new Date(scheduleOpenAt.value) : null
-      const isLocked =
-        !scheduleOpenAt.value || (openAt && !Number.isNaN(openAt.getTime()) && openAt.getTime() > Date.now())
-      if (isLocked) {
-        contents.value = []
-        contentsError.value = ''
-        contentsStatus.value = 'locked'
-      } else {
-        await loadContents(selectedSessionId.value)
-      }
-    }
-
-    closeScheduleModal()
-  } catch (e) {
-    scheduleModalError.value = e?.message || 'Gagal menyimpan jadwal'
-  } finally {
-    scheduleSaving.value = false
-  }
-}
-
-async function clearSchedule() {
-  scheduleDraftLocal.value = ''
-  await saveSchedule()
-}
-
-function isoToLocalInput(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-
-  const pad = (n) => String(n).padStart(2, '0')
-  const yyyy = d.getFullYear()
-  const mm = pad(d.getMonth() + 1)
-  const dd = pad(d.getDate())
-  const hh = pad(d.getHours())
-  const mi = pad(d.getMinutes())
-  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`
-}
-
-async function loadContents(sessionId) {
-  contentsStatus.value = 'loading'
-  contentsError.value = ''
-  try {
-    const res = await services.sessions.listContents(moduleId.value, sessionId)
-    const list = normalizeListResponse(res)
-    contents.value = list.map(mapContent)
-    contentsStatus.value = 'success'
-    fileViewStatusById.value = {}
-    fileViewErrorById.value = {}
-  } catch (e) {
-    contentsStatus.value = 'error'
-    contentsError.value = e?.message || 'Gagal memuat konten'
-  }
-}
-
-async function downloadFile(content) {
-  const contentId = content?.id
-  if (!contentId || !selectedSessionId.value) return
-
-  downloadStatusById.value = { ...downloadStatusById.value, [contentId]: 'loading' }
-  try {
-    const blob = await services.sessions.downloadContentFile(moduleId.value, selectedSessionId.value, contentId)
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = content.fileName || `content-${contentId}`
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  } catch (e) {
-    contentsError.value = e?.message || 'Gagal download file'
-  } finally {
-    downloadStatusById.value = { ...downloadStatusById.value, [contentId]: 'idle' }
-  }
-}
-
-async function viewFilePublic(content) {
-  const contentId = content?.id
-  if (!contentId || !selectedSessionId.value) return
-
-  fileViewStatusById.value = { ...fileViewStatusById.value, [contentId]: 'loading' }
-  fileViewErrorById.value = { ...fileViewErrorById.value, [contentId]: '' }
-
-  try {
-    const res = await services.sessions.createContentViewUrl(moduleId.value, selectedSessionId.value, contentId)
-    const publicUrl = res?.data?.public_url || res?.data?.publicUrl || res?.public_url || res?.publicUrl || ''
-    if (!publicUrl) throw new Error('URL view tidak tersedia')
-    window.open(publicUrl, '_blank', 'noopener,noreferrer')
-  } catch (e) {
-    fileViewErrorById.value = { ...fileViewErrorById.value, [contentId]: e?.message || 'Gagal membuka berkas' }
-  } finally {
-    fileViewStatusById.value = { ...fileViewStatusById.value, [contentId]: 'idle' }
-  }
-}
-
-async function viewFile(content) {
-  const kind = mediaKindFromContent(content)
-  if (content?.isMedia || kind) {
-    await openMediaPreview(content, kind || 'image')
-    return
-  }
-
-  // Prefer public view URL for non-media documents when supported.
-  if (content?.shouldUsePublicViewUrl || content?.isPublicViewSupported) {
-    await viewFilePublic(content)
-    return
-  }
-
-  // Fallback: open the authenticated file endpoint in a new tab via blob URL.
-  await viewFileAuthTab(content)
-}
-
-function mediaKindFromContent(content) {
-  const k = String(content?.fileKind || '').toLowerCase()
-  if (k === 'image') return 'image'
-  if (k === 'video') return 'video'
-
-  const mime = String(content?.mimeType || '').toLowerCase()
-  if (mime.startsWith('image/')) return 'image'
-  if (mime.startsWith('video/')) return 'video'
-  if (mime.startsWith('audio/')) return 'audio'
-
-  return ''
-}
-
-async function viewFileAuthTab(content) {
-  const contentId = content?.id
-  if (!contentId || !selectedSessionId.value) return
-
-  fileViewStatusById.value = { ...fileViewStatusById.value, [contentId]: 'loading' }
-  fileViewErrorById.value = { ...fileViewErrorById.value, [contentId]: '' }
-
-  try {
-    const blob = await services.sessions.downloadContentFile(moduleId.value, selectedSessionId.value, contentId)
-    const url = URL.createObjectURL(blob)
-    window.open(url, '_blank', 'noopener,noreferrer')
-    setTimeout(() => URL.revokeObjectURL(url), 60_000)
-  } catch (e) {
-    fileViewErrorById.value = { ...fileViewErrorById.value, [contentId]: e?.message || 'Gagal membuka berkas' }
-  } finally {
-    fileViewStatusById.value = { ...fileViewStatusById.value, [contentId]: 'idle' }
-  }
-}
-
 async function openMediaPreview(content, kind) {
-  const contentId = content?.id
-  if (!contentId || !selectedSessionId.value) return
-
-  closeMediaPreview()
-  mediaPreviewOpen.value = true
-  mediaPreviewStatus.value = 'loading'
-  mediaPreviewError.value = ''
-  mediaPreviewKind.value = kind
-  mediaPreviewContent.value = content
-
-  try {
-    const blob = await services.sessions.downloadContentFile(moduleId.value, selectedSessionId.value, contentId)
-    const url = URL.createObjectURL(blob)
-    mediaPreviewUrl.value = url
-    mediaPreviewStatus.value = 'success'
-  } catch (e) {
-    mediaPreviewStatus.value = 'error'
-    mediaPreviewError.value = e?.message || 'Gagal memuat media'
-  }
+  await openMediaPreviewInternal({
+    content,
+    kind,
+    moduleId: moduleId.value,
+    sessionId: selectedSessionId.value,
+    downloadContentFile: services.sessions.downloadContentFile.bind(services.sessions),
+  })
 }
 
-function closeMediaPreview() {
-  mediaPreviewOpen.value = false
-  mediaPreviewStatus.value = 'idle'
-  mediaPreviewError.value = ''
-  mediaPreviewContent.value = null
-  mediaPreviewKind.value = 'image'
-
-  const url = mediaPreviewUrl.value
-  mediaPreviewUrl.value = ''
-  if (url) URL.revokeObjectURL(url)
-}
-
-function normalizeListResponse(res) {
-  if (Array.isArray(res)) return res
-  if (res && typeof res === 'object') {
-    if (Array.isArray(res.data)) return res.data
-    if (res.data && Array.isArray(res.data.sessions)) return res.data.sessions
-    if (res.data && Array.isArray(res.data.contents)) return res.data.contents
-  }
-  return []
-}
-
-function mapSession(s) {
-  return {
-    id: s?.id,
-    title: s?.title || `Sesi ${s?.sort_order || ''}`.trim(),
-    description: s?.description || '',
-    sortOrder: typeof s?.sort_order === 'number' ? s.sort_order : typeof s?.sortOrder === 'number' ? s.sortOrder : 999,
-  }
-}
-
-function mapContent(c) {
-  const type = c?.content_type || c?.type || 'text'
-  const title = c?.title || (type === 'file' ? 'File' : type === 'url' ? 'Link' : 'Text')
-  const typeLabel = type === 'file' ? 'Berkas' : type === 'url' ? 'Tautan' : 'Teks'
-
-  return {
-    id: c?.id,
-    type,
-    typeLabel,
-    typeBadge: typeLabel,
-    title,
-    url: c?.url || '',
-    text: c?.text_content || c?.text || '',
-    fileName: c?.original_name || c?.file_name || c?.filename || c?.title || `content-${c?.id || ''}`,
-    mimeType: c?.mime_type || c?.mimeType || '',
-    fileDownloadUrl: c?.file_download_url || c?.fileDownloadUrl || null,
-    fileKind: c?.file_kind || c?.fileKind || null,
-    isMedia: Boolean(c?.is_media ?? c?.isMedia),
-    isPublicViewSupported: Boolean(c?.is_public_view_supported ?? c?.isPublicViewSupported),
-    shouldUsePublicViewUrl: Boolean(c?.should_use_public_view_url ?? c?.shouldUsePublicViewUrl),
-  }
-}
 </script>

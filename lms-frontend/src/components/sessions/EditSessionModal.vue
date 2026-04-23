@@ -40,7 +40,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
-import { createServices } from '@/services'
+import { getServices } from '@/services'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -50,7 +50,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'saved'])
 
-const services = createServices()
+const services = getServices()
 
 const title = ref('')
 
