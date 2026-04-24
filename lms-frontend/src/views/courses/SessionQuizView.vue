@@ -347,7 +347,7 @@
                     <label
                       v-for="opt in (q.options || [])"
                       :key="opt.id || opt.option_id || opt.optionId || opt.option_text"
-                      class="flex items-start gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
+                      class="grid grid-cols-[auto_1fr] items-start gap-3 rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm"
                     >
                       <input
                         type="radio"
@@ -356,10 +356,14 @@
                         :value="opt.id || opt.option_id || opt.optionId"
                         v-model="studentAnswersMcq[String(q.id || q.question_id || q.questionId)]"
                       />
-                      <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
-                        <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-20 w-full object-contain" />
-                      </template>
-                      <span v-else class="text-sm font-semibold text-ink/80">{{ opt.option_text || opt.optionText || '' }}</span>
+                      <div class="min-w-0">
+                        <template v-if="isImageDataUrl(opt.option_text || opt.optionText)">
+                          <img :src="opt.option_text || opt.optionText" alt="Option image" class="max-h-24 w-full object-contain" />
+                        </template>
+                        <span v-else class="block text-sm font-semibold text-ink/80">
+                          {{ opt.option_text || opt.optionText || '' }}
+                        </span>
+                      </div>
                     </label>
                   </div>
 
@@ -889,8 +893,8 @@
               <div class="flex items-center justify-between gap-3">
                 <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Soal {{ qIdx + 1 }}</p>
               </div>
-              <div class="flex w-full flex-row items-start justify-center gap-4 overflow-x-auto">
-                <div class="shrink-0 w-fit">
+              <div class="flex w-full flex-col items-stretch gap-4 sm:flex-row sm:items-start sm:justify-center">
+                <div class="shrink-0 w-fit self-center sm:self-start">
                   <!-- <p class="text-sm font-semibold">Gambar (opsional)</p> -->
                   <label
                     class="block aspect-square w-[80px] max-w-full cursor-pointer rounded-2xl border-2 border-ink bg-paper transition hover:bg-accent/20 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"

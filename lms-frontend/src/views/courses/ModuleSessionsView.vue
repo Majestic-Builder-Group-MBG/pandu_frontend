@@ -18,14 +18,14 @@
                   {{ feedback.message }}
                 </div>
 
-                <div class="relative inline-flex flex-wrap items-center gap-2">
+                <div class="relative flex w-full flex-wrap items-center gap-2">
                   <span class="ink-chip bg-accent/60">Kode Akses</span>
 
                   <template v-if="isEditingEnrollKey">
                     <input
                       v-model.trim="enrollKeyDraft"
                       type="text"
-                      class="min-w-[240px] rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold text-ink shadow-ink-sm outline-none focus:bg-cloud"
+                      class="w-full rounded-xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold text-ink shadow-ink-sm outline-none focus:bg-cloud sm:w-auto sm:min-w-[240px]"
                       placeholder="TRIGONOMETRI-KELAS-7A"
                     />
                     <button
@@ -51,7 +51,7 @@
 
                   <template v-else>
                     <span class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 font-mono text-xs font-extrabold text-ink">
-                      {{ enrollKey || 'Loading...' }}
+                      <span class="block max-w-full break-all">{{ enrollKey || 'Loading...' }}</span>
                     </span>
                     <div ref="menuRef" class="relative">
                       <button
