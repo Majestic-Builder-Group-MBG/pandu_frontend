@@ -7,6 +7,9 @@ function mapSession(s) {
     title: s?.title || `Sesi ${s?.sort_order || ''}`.trim(),
     description: s?.description || '',
     sortOrder: typeof s?.sort_order === 'number' ? s.sort_order : typeof s?.sortOrder === 'number' ? s.sortOrder : 999,
+    hasQuiz: Boolean(s?.has_quiz ?? s?.hasQuiz ?? s?.quiz?.exists),
+    quizExists: Boolean(s?.quiz?.exists ?? s?.has_quiz ?? s?.hasQuiz),
+    quizIsPublished: Boolean(s?.quiz?.is_published ?? s?.quiz?.isPublished),
   }
 }
 

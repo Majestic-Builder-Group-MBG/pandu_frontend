@@ -44,6 +44,7 @@ function mapModule(m) {
     teacherName: m?.teacher_name || m?.teacherName || '',
     enrollKey: m?.enroll_key || m?.enrollKey || '',
     createdAt: m?.created_at || m?.createdAt || '',
+    hasQuiz: Boolean(m?.has_quiz ?? m?.hasQuiz),
     sessions: typeof sessionsCount === 'number' && Number.isFinite(sessionsCount) ? sessionsCount : 0,
     materials: typeof materialsCount === 'number' && Number.isFinite(materialsCount) ? materialsCount : 0,
     quizzes: typeof quizzesCount === 'number' && Number.isFinite(quizzesCount) ? quizzesCount : 0,
@@ -122,9 +123,14 @@ export const useModulesStore = defineStore('modules', {
       try {
         const res = await services.sessions.list(mid)
         const list = normalizeListResponse(res)
-        const sessionIds = list
-          .map((s) => Number(s?.id))
-          .filter((id) => Number.isFinite(id) && id > 0)
+        const sessionsList = list
+          .map((s) => ({
+            id: Number(s?.id),
+            hasQuiz: Boolean(s?.has_quiz ?? s?.hasQuiz ?? s?.quiz?.exists),
+            quizIsPublished: Boolean(s?.quiz?.is_published ?? s?.quiz?.isPublished),
+          }))
+          .filter((s) => Number.isFinite(s.id) && s.id > 0)
+        const sessionIds = sessionsList.map((s) => s.id)
 
         const sessionsCount = sessionIds.length
         const isStudent = String(role || '').toLowerCase() === 'student'
@@ -146,19 +152,11 @@ export const useModulesStore = defineStore('modules', {
             if (!openAt) continue
 
             // eslint-disable-next-line no-await-in-loop
-            const qres = await services.quizzes.getQuiz(mid, sid).catch((e) => ({ __error: e }))
-            if (qres?.__error) {
-              const st = qres.__error?.status
-              if (st === 404 || st === 403) continue
-              continue
-            }
-
-            const data = qres?.data || qres
-            if (qres?.success === false) continue
+            const sessionMeta = sessionsList.find((item) => item.id === sid)
+            if (!sessionMeta?.hasQuiz) continue
 
             if (isStudent) {
-              const published = Boolean(data?.is_published ?? data?.isPublished)
-              if (!published) continue
+              if (!sessionMeta.quizIsPublished) continue
             }
 
             quizzesCount += 1

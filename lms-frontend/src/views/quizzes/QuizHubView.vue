@@ -185,6 +185,9 @@ function mapSession(s) {
     title: s?.title || `Sesi ${s?.sort_order || ''}`.trim(),
     description: s?.description || '',
     sortOrder: typeof s?.sort_order === 'number' ? s.sort_order : typeof s?.sortOrder === 'number' ? s.sortOrder : 999,
+    hasQuiz: Boolean(s?.has_quiz ?? s?.hasQuiz ?? s?.quiz?.exists),
+    quizExists: Boolean(s?.quiz?.exists ?? s?.has_quiz ?? s?.hasQuiz),
+    quizIsPublished: Boolean(s?.quiz?.is_published ?? s?.quiz?.isPublished),
   }
 }
 
@@ -268,32 +271,21 @@ async function hydrateSessionsMeta() {
         return
       }
 
-      // 2) Quiz must exist. If backend returns 404 (not created) or 403 (not visible for student), hide.
-      try {
-        const res = await services.quizzes.getQuiz(moduleId, sessionId)
-        const data = res?.data || res || {}
-        const isPublished = Boolean(data?.is_published ?? data?.isPublished)
-
-        // Student: still require published.
-        if (!canManage.value && !isPublished) {
-          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dipublish.' })
-          setSessionMetaStatus(sessionId, 'success')
-          return
-        }
-
-        setSessionMeta(sessionId, { ok: true })
+      const session = sessions.value.find((item) => item.id === sessionId)
+      if (!session?.quizExists) {
+        setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dibuat.' })
         setSessionMetaStatus(sessionId, 'success')
-      } catch (e) {
-        const status = e?.status
-        if (status === 404) {
-          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dibuat.' })
-        } else if (status === 403) {
-          setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum tersedia.' })
-        } else {
-          setSessionMeta(sessionId, { ok: false, reason: 'Gagal mengecek quiz.' })
-        }
-        setSessionMetaStatus(sessionId, 'success')
+        return
       }
+
+      if (!canManage.value && !session.quizIsPublished) {
+        setSessionMeta(sessionId, { ok: false, reason: 'Quiz belum dipublish.' })
+        setSessionMetaStatus(sessionId, 'success')
+        return
+      }
+
+      setSessionMeta(sessionId, { ok: true })
+      setSessionMetaStatus(sessionId, 'success')
     })
   )
 }

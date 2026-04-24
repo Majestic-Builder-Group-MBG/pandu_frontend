@@ -327,6 +327,12 @@ async function loadDashboardQuizzes({ force = false } = {}) {
         for (const s of list) {
           const sid = Number(s?.id)
           if (!Number.isFinite(sid) || sid <= 0) continue
+          const hasQuiz = Boolean(s?.has_quiz ?? s?.hasQuiz ?? s?.quiz?.exists)
+          if (!hasQuiz) continue
+
+          const quizIsPublished = Boolean(s?.quiz?.is_published ?? s?.quiz?.isPublished)
+          if (isStudent && !quizIsPublished) continue
+
           sessionPairs.push({ moduleId: mid, sessionId: sid })
         }
       } catch {

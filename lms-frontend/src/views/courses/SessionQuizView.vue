@@ -878,6 +878,7 @@
 
     <BaseModal
       :open="questionModalOpen"
+      :title="questionModalMode === 'create' ? 'Tambah Soal' : 'Edit Soal'"
       kicker="Tambah Soal"
       @close="closeQuestionModal"
     >
@@ -1499,9 +1500,18 @@ function mediaSrcForQuestion(q) {
   return questionMediaUrlById[id] || ''
 }
 
+function questionHasMedia(q) {
+  return Boolean(q?.has_media ?? q?.hasMedia ?? q?.media_url ?? q?.mediaUrl)
+}
+
 async function ensureQuestionMedia(q) {
   const id = getQuestionId(q)
   if (!id) return
+
+  if (!questionHasMedia(q)) {
+    questionMediaStatusById[id] = 'none'
+    return
+  }
 
   const status = questionMediaStatusById[id]
   if (status === 'loading' || status === 'success' || status === 'none') return

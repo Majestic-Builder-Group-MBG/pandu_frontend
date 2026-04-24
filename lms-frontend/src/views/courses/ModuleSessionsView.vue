@@ -768,13 +768,24 @@ const quizLink = computed(() => {
    quizPreviewStatus.value = 'loading'
 
    // Jangan tampilkan kuis jika sesi belum "dibuka" (open_at belum diset).
-   if (!scheduleOpenAt.value) {
-     quizPreviewStatus.value = 'success'
-     return
-   }
+    if (!scheduleOpenAt.value) {
+      quizPreviewStatus.value = 'success'
+      return
+    }
 
-   try {
-     const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
+    const selectedSession = sessions.value.find((item) => item.id === selectedSessionId.value)
+    if (!selectedSession?.quizExists) {
+      quizPreviewStatus.value = 'success'
+      return
+    }
+
+    if (!canManageSessions.value && !selectedSession.quizIsPublished) {
+      quizPreviewStatus.value = 'success'
+      return
+    }
+
+    try {
+      const res = await services.quizzes.getQuiz(moduleId.value, selectedSessionId.value)
      const data = res?.data || res
 
      const isPublished = Boolean(data?.is_published ?? data?.isPublished)
@@ -792,12 +803,12 @@ const quizLink = computed(() => {
        text: data?.description || ' ',
      }
      quizPreviewStatus.value = 'success'
-   } catch (e) {
-     // 404 = quiz belum dibuat, 403 = student belum boleh lihat. Jangan tampilkan card.
-     quizPreviewStatus.value = 'error'
-     quizPreview.value = null
-   }
- }
+    } catch {
+      // Metadata says quiz exists, but detail fetch failed. Hide the card without surfacing a false error state.
+      quizPreviewStatus.value = 'success'
+      quizPreview.value = null
+    }
+  }
 
 const canManageSessions = computed(() => {
   const r = auth.user?.role
