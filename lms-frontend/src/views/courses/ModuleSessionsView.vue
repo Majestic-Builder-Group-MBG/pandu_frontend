@@ -307,7 +307,7 @@
               >
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0">
-                    <p class="text-sm font-extrabold">{{ c.title }}</p>
+                    <p class="text-sm font-extrabold break-words [overflow-wrap:anywhere]">{{ c.title }}</p>
                     <p v-if="c.type === 'quiz'" class="mt-1 text-xs font-bold text-ink/50">Kuis</p>
                   </div>
 
@@ -362,7 +362,7 @@
 
                 <div class="mt-3">
                   <template v-if="c.type === 'quiz'">
-                    <p v-if="c.text" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                    <p v-if="c.text" class="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ c.text }}</p>
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                       <RouterLink
                         :to="quizLink"
@@ -378,7 +378,7 @@
                     </div>
                   </template>
 
-                  <p v-if="c.type === 'text'" class="whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                  <p v-if="c.type === 'text'" class="whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ c.text }}</p>
 
                 <a
                   v-else-if="c.type === 'url'"
@@ -395,9 +395,9 @@
                   </svg>
                 </a>
 
-                <p v-if="c.type === 'file' && c.text" class="mt-3 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
-                
-                <p v-if="c.type === 'url' && c.text" class="mt-3 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                <p v-if="c.type === 'file' && c.text" class="mt-3 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ c.text }}</p>
+                 
+                <p v-if="c.type === 'url' && c.text" class="mt-3 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ c.text }}</p>
 
                 <div v-if="c.type === 'file'" class="mt-3 flex flex-wrap items-center gap-2">
                   <button
@@ -680,7 +680,7 @@
           </p>
 
           <template v-else>
-            <p v-if="mediaPreviewContent?.text" class="mb-4 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ mediaPreviewContent.text }}</p>
+            <p v-if="mediaPreviewContent?.text" class="mb-4 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ mediaPreviewContent.text }}</p>
 
             <div class="rounded-2xl border-2 border-ink bg-paper p-3 shadow-ink-sm">
               <img

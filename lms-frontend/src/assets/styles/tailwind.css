@@ -6,6 +6,8 @@
   html,
   body {
     height: 100%;
+    /* Prevent horizontal scroll from brutalist shadows/borders on small screens. */
+    overflow-x: hidden;
   }
 
   body {

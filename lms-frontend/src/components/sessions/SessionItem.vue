@@ -2,7 +2,7 @@
   <div class="relative">
     <button
       type="button"
-      class="w-full rounded-2xl border-2 border-ink p-2 text-left shadow-ink-sm transition"
+      class="w-full overflow-hidden rounded-2xl border-2 border-ink p-2 text-left shadow-ink-sm transition"
       :class="selected ? 'bg-accent/40' : 'bg-paper hover:bg-accent/20'"
       @click="$emit('select')"
     >
@@ -21,7 +21,12 @@
           </span>
 
           <div class="min-w-0 flex-1">
-            <p v-if="!isRenaming" class="truncate text-base font-extrabold leading-snug">{{ session.title }}</p>
+            <p
+              v-if="!isRenaming"
+              class="line-clamp-2 break-words text-base font-extrabold leading-snug [overflow-wrap:anywhere] sm:line-clamp-none sm:truncate"
+            >
+              {{ session.title }}
+            </p>
 
           <div v-else class="flex flex-wrap items-center gap-2">
             <input

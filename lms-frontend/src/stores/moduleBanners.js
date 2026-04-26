@@ -8,22 +8,27 @@ export const useModuleBannersStore = defineStore('moduleBanners', {
   }),
   actions: {
     async ensureBanner({ moduleId, bannerPath, services } = {}) {
-      if (!moduleId || !bannerPath) return ''
-      if (this.urlsById[moduleId]) return this.urlsById[moduleId]
-      if (this.statusById[moduleId] === 'loading') return ''
+      const id = Number(moduleId)
+      const path = typeof bannerPath === 'string' ? bannerPath.trim() : ''
+      // Banner is optional; skip any fetch for empty/invalid paths.
+      if (!Number.isFinite(id) || id <= 0) return ''
+      if (!path || path === 'null' || path === 'undefined') return ''
+
+      if (this.urlsById[id]) return this.urlsById[id]
+      if (this.statusById[id] === 'loading') return ''
       if (!services?.modules?.getBannerByUrl) throw new Error('Modules service not available')
 
-      this.statusById[moduleId] = 'loading'
-      this.errorById[moduleId] = null
+      this.statusById[id] = 'loading'
+      this.errorById[id] = null
       try {
-        const blob = await services.modules.getBannerByUrl(bannerPath)
+        const blob = await services.modules.getBannerByUrl(path)
         const url = URL.createObjectURL(blob)
-        this.urlsById[moduleId] = url
-        this.statusById[moduleId] = 'success'
+        this.urlsById[id] = url
+        this.statusById[id] = 'success'
         return url
       } catch (e) {
-        this.statusById[moduleId] = 'error'
-        this.errorById[moduleId] = e?.message || 'Gagal memuat banner'
+        this.statusById[id] = 'error'
+        this.errorById[id] = e?.message || 'Gagal memuat banner'
         return ''
       }
     },

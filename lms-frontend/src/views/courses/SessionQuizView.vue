@@ -230,7 +230,7 @@
           <article class="ink-card p-6">
             <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-ink/60">Quiz</p>
             <h2 class="mt-2 text-xl font-semibold">{{ quizTitle }}</h2>
-            <p v-if="quizDescription" class="mt-3 whitespace-pre-wrap text-sm font-semibold text-ink/70">{{ quizDescription }}</p>
+            <p v-if="quizDescription" class="mt-3 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-semibold text-ink/70">{{ quizDescription }}</p>
 
             
           </article>
@@ -675,7 +675,7 @@
                       <div v-if="row.questionType === 'essay'" class="mt-4 space-y-3">
                         <div class="rounded-xl border-2 border-ink bg-cloud px-3 py-2 shadow-ink-sm">
                           <p class="text-xs font-bold text-ink/50">Jawaban siswa</p>
-                          <p class="mt-1 whitespace-pre-wrap text-sm font-extrabold">{{ row.essayAnswer || row.selectedLabel }}</p>
+                          <p class="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-sm font-extrabold">{{ row.essayAnswer || row.selectedLabel }}</p>
                         </div>
 
                         <div v-if="canManage" class="grid gap-3 sm:grid-cols-[180px_1fr]">
@@ -1151,28 +1151,92 @@
         {{ studentScoreError }}
       </p>
 
-      <div v-else class="space-y-2">
+      <div v-else class="space-y-4">
         <p v-if="studentScoreStatus === 'loading'" class="text-sm font-semibold text-ink/60">Memuat nilai...</p>
 
         <div v-else-if="!leaderboardRows.length" class="text-sm font-semibold text-ink/60">Leaderboard belum tersedia.</div>
 
-        <div v-else class="space-y-2">
-          <article
-            v-for="(r, idx) in leaderboardRows"
-            :key="r.key || idx"
-            class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 shadow-ink-sm"
-          >
+        <div v-else class="space-y-4">
+          <section class="rounded-3xl border-2 border-ink bg-cloud p-4 shadow-ink-sm">
+            <div class="grid grid-cols-3 items-end gap-3">
+              <div
+                v-for="rank in [3, 2, 1]"
+                :key="`podium-${rank}`"
+                class="flex flex-col items-center gap-2"
+              >
+                <div
+                  class="grid h-12 w-12 place-items-center rounded-full border-2 border-ink shadow-ink-sm"
+                  :class="rank === 1 ? 'bg-accent' : rank === 2 ? 'bg-ocean-50' : 'bg-paper'"
+                >
+                  <span class="text-xs font-extrabold">{{ initials(leaderboardByRank[rank]?.name) }}</span>
+                </div>
+
+                <p class="max-w-[100px] truncate text-xs font-extrabold text-ink">
+                  {{ leaderboardByRank[rank]?.name || '-' }}
+                </p>
+
+                <span
+                  class="rounded-xl border-2 border-ink px-2 py-1 text-[11px] font-extrabold shadow-ink-sm"
+                  :class="rank === 1 ? 'bg-accent-soft' : rank === 2 ? 'bg-ocean-50' : 'bg-paper'"
+                >
+                  {{ leaderboardScoreLabel(leaderboardByRank[rank]) }}
+                </span>
+
+                <div
+                  class="w-full rounded-3xl border-2 border-ink shadow-ink-sm"
+                  :class="podiumClass(rank)"
+                >
+                  <div class="grid h-full place-items-center p-3">
+                    <p class="text-2xl font-black text-ink">{{ rank }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section v-if="myLeaderboardRow" class="rounded-3xl border-2 border-ink bg-accent p-4 shadow-ink-sm">
             <div class="flex items-center justify-between gap-3">
-              <p class="text-sm font-extrabold">#{{ r.rank ?? idx + 1 }} {{ r.name || 'Student' }}</p>
-              <span class="rounded-xl border-2 border-ink bg-cloud px-2 py-1 text-xs font-extrabold">{{ r.scoreLabel }} / 100</span>
+              <div class="flex min-w-0 items-center gap-3">
+                <div class="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper shadow-ink-sm">
+                  <span class="text-xs font-extrabold">{{ initials(myLeaderboardRow.name) }}</span>
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-extrabold text-ink">{{ myLeaderboardRow.name }}</p>
+                  <p class="text-xs font-bold text-ink/70">Posisi #{{ myLeaderboardRow.rank }}</p>
+                </div>
+              </div>
+              <span class="rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-sm font-extrabold shadow-ink-sm">
+                {{ leaderboardScoreLabel(myLeaderboardRow) }}
+              </span>
             </div>
 
-            <p v-if="r.pointsLabel || r.attemptNo || r.submittedAt" class="mt-1 text-xs font-bold text-ink/60">
-              <span v-if="r.pointsLabel">{{ r.pointsLabel }} poin</span>
-              <span v-if="r.attemptNo">{{ r.pointsLabel ? ' • ' : '' }}Attempt #{{ r.attemptNo }}</span>
-              <span v-if="r.submittedAt">{{ (r.pointsLabel || r.attemptNo) ? ' • ' : '' }}{{ r.submittedAt }}</span>
-            </p>
-          </article>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div class="rounded-2xl border-2 border-ink bg-paper px-3 py-2 shadow-ink-sm">
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-ink/60">Nilai</p>
+                <p class="mt-1 text-sm font-black text-ink">{{ leaderboardScoreLabel(myLeaderboardRow) }}</p>
+              </div>
+              <div class="rounded-2xl border-2 border-ink bg-ocean-50 px-3 py-2 shadow-ink-sm">
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-ink/60">Attempt</p>
+                <p class="mt-1 text-sm font-black text-ink">{{ myLeaderboardRow.attemptNo ? `#${myLeaderboardRow.attemptNo}` : '-' }}</p>
+              </div>
+              <div class="rounded-2xl border-2 border-ink bg-accent-soft px-3 py-2 shadow-ink-sm">
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.18em] text-ink/60">Peringkat</p>
+                <p class="mt-1 text-sm font-black text-ink">#{{ myLeaderboardRow.rank }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="space-y-2">
+            <article
+              v-for="r in leaderboardRest"
+              :key="r.key"
+              class="flex items-center gap-3 rounded-3xl border-2 border-ink bg-paper px-4 py-3 shadow-ink-sm"
+            >
+              <p class="w-10 shrink-0 font-mono text-xs font-extrabold text-ink/70">{{ String(r.rank || 0).padStart(2, '0') }}</p>
+              <p class="min-w-0 flex-1 truncate text-sm font-extrabold text-ink">{{ r.name }}</p>
+              <span class="rounded-2xl border-2 border-ink bg-ocean-50 px-2.5 py-1 text-xs font-extrabold">{{ leaderboardScoreLabel(r) }}</span>
+            </article>
+          </section>
         </div>
       </div>
 
@@ -1224,6 +1288,31 @@ const quiz = ref(null)
 const bannerUrl = ref('')
 const bannerUrlStatus = ref('idle')
 
+function quizHasBanner(q) {
+  if (!q) return false
+  const flag = q?.has_banner ?? q?.hasBanner
+  if (typeof flag === 'boolean') return flag
+
+  const rawUrl =
+    q?.banner_download_url ??
+    q?.bannerDownloadUrl ??
+    q?.banner_url ??
+    q?.bannerUrl ??
+    q?.banner_path ??
+    q?.bannerPath ??
+    q?.banner_image_path ??
+    q?.bannerImagePath
+
+  if (typeof rawUrl === 'string') {
+    const s = rawUrl.trim()
+    return Boolean(s) && s !== 'null' && s !== 'undefined'
+  }
+
+  // If the API doesn't provide any banner fields, fall back to previous behavior
+  // (we'll try fetching and treat 404 as "no banner").
+  return rawUrl != null
+}
+
 const activeTab = ref('overview')
 
 const publishStatus = ref('idle')
@@ -1244,6 +1333,56 @@ const studentScoreOpen = ref(false)
 const studentScoreStatus = ref('idle')
 const studentScoreError = ref('')
 const leaderboardRows = ref([])
+
+const leaderboardByRank = computed(() => {
+  const out = {}
+  for (const r of leaderboardRows.value) {
+    const rank = Number(r?.rank)
+    if (!Number.isFinite(rank) || rank <= 0) continue
+    if (!out[rank]) out[rank] = r
+  }
+  return out
+})
+
+const leaderboardRest = computed(() => {
+  return leaderboardRows.value.filter((r) => Number(r?.rank) >= 4)
+})
+
+const myLeaderboardRow = computed(() => {
+  const uid = auth.user?.id ?? auth.user?.user_id ?? auth.user?.userId ?? auth.user?.student_id ?? auth.user?.studentId
+  if (uid != null) {
+    const byId = leaderboardRows.value.find((r) => String(r?.key) === String(uid))
+    if (byId) return byId
+  }
+
+  const n = String(auth.user?.name || auth.user?.full_name || auth.user?.fullName || '').trim().toLowerCase()
+  if (!n) return null
+  return leaderboardRows.value.find((r) => String(r?.name || '').trim().toLowerCase() === n) || null
+})
+
+function initials(name) {
+  const s = String(name || '').trim()
+  if (!s) return '??'
+  const parts = s.split(/\s+/).filter(Boolean)
+  const first = parts[0]?.[0] || ''
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] || '') : (parts[0]?.[1] || '')
+  const out = `${first}${last}`.toUpperCase()
+  return out || '??'
+}
+
+function leaderboardScoreLabel(r) {
+  if (!r) return '-'
+  const v = Number(r.score)
+  if (!Number.isFinite(v)) return '-'
+  return `${Math.round(v)} / 100`
+}
+
+function podiumClass(rank) {
+  const r = Number(rank)
+  if (r === 1) return 'bg-accent h-28'
+  if (r === 2) return 'bg-ocean-50 h-24'
+  return 'bg-paper h-20'
+}
 
 const reviewStatus = ref('idle')
 const reviewError = ref('')
@@ -1577,7 +1716,12 @@ async function loadBanner() {
     const blob = await services.quizzes.getQuizBanner(moduleId.value, sessionId.value)
     bannerUrl.value = URL.createObjectURL(blob)
     bannerUrlStatus.value = 'success'
-  } catch {
+  } catch (e) {
+    // Common case: quiz has no banner. Treat as "none" and don't surface as error.
+    if (e?.status === 404) {
+      bannerUrlStatus.value = 'none'
+      return
+    }
     bannerUrlStatus.value = 'error'
   }
 }
@@ -1593,7 +1737,14 @@ async function loadQuiz({ force = false } = {}) {
 
     quiz.value = data
     status.value = 'success'
-    await loadBanner()
+
+    // Avoid GET /quiz/banner when quiz has no banner (prevents 404 noise on deploy).
+    if (quizHasBanner(data)) {
+      await loadBanner()
+    } else {
+      revokeBannerUrl()
+      bannerUrlStatus.value = 'none'
+    }
 
     const lv = String(data?.leaderboard_visibility || data?.leaderboardVisibility || '').toLowerCase()
     if (lv === 'public' || lv === 'private') leaderboardVisibility.value = lv
