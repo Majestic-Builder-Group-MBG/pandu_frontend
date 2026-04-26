@@ -81,9 +81,13 @@
                 <!-- email -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Email</span>
-                  <input v-model.trim="email" type="email" autocomplete="email" class="ink-input py-2.5"
+                  <input v-model.trim="email" list="login-email-history" type="email" autocomplete="email" class="ink-input py-2.5"
                     placeholder="teacher1@mail.com" />
                 </label>
+
+                <datalist id="login-email-history">
+                  <option v-for="e in emailOptions" :key="e" :value="e" />
+                </datalist>
 
                 <!-- password -->
                 <label class="block space-y-1.5">
@@ -150,12 +154,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, RouterLink } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import continuousLearning from '@/assets/images/continuous-learning.svg'
 import { useAuthStore } from '@/stores/auth'
 import { getServices } from '@/services'
+import {
+  clearLoginHistory,
+  getLastLoginEmail,
+  getRememberMeEnabled,
+  readLoginEmailHistory,
+  recordLoginEmail,
+  setRememberMeEnabled,
+} from '@/utils/loginHistory'
 
 const email = ref('')
 const password = ref('')
@@ -166,8 +178,17 @@ const isLoading = ref(false)
 const errorMessage = ref('')
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const services = getServices()
+
+const emailOptions = computed(() => readLoginEmailHistory().map((x) => x.email))
+
+onMounted(() => {
+  remember.value = getRememberMeEnabled()
+  const qEmail = String(route.query?.email || '').trim().toLowerCase()
+  email.value = qEmail || getLastLoginEmail()
+})
 
 async function onSubmit() {
   errorMessage.value = ''
@@ -183,6 +204,15 @@ async function onSubmit() {
       { email: email.value, password: password.value },
       { services, persist: remember.value }
     )
+
+    if (remember.value) {
+      setRememberMeEnabled(true)
+      recordLoginEmail(email.value)
+    } else {
+      // User opted out: don't keep any login history.
+      clearLoginHistory()
+      setRememberMeEnabled(false)
+    }
     router.push('/dashboard')
   } catch (e) {
     errorMessage.value = auth.error || e?.message || 'Login gagal'

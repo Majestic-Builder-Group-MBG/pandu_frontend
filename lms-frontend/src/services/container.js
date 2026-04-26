@@ -8,6 +8,8 @@ import { EnrollmentsService } from '@/services/enrollments/EnrollmentsService'
 import { DashboardService } from '@/services/dashboard/DashboardService'
 import { RemindersService } from '@/services/reminders/RemindersService'
 import { PushSubscriptionsService } from '@/services/push/PushSubscriptionsService'
+import { ProfileService } from '@/services/profile/ProfileService'
+import { PasswordChangeInboxService } from '@/services/profile/PasswordChangeInboxService'
 import { useAuthStore } from '@/stores/auth'
 
 let servicesInstance = null
@@ -29,6 +31,8 @@ export function getServices() {
     dashboard: new DashboardService(api),
     reminders: new RemindersService(api),
     pushSubscriptions: new PushSubscriptionsService(api),
+    profile: new ProfileService(api),
+    passwordChangeInbox: new PasswordChangeInboxService(api),
   }
 
   return servicesInstance

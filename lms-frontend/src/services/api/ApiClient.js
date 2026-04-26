@@ -86,12 +86,27 @@ export class ApiClient {
 
       // Error handling with best-effort message parsing
       if (!res.ok) {
+        if (res.status === 401 && typeof window !== 'undefined') {
+          try {
+            window.dispatchEvent(new CustomEvent('pandu:unauthorized', { detail: { url, method: normalizedMethod } }))
+          } catch {
+            // ignore
+          }
+        }
+
         const ct = res.headers.get('content-type') || ''
         const isJson = ct.includes('application/json')
         const payload = isJson ? await res.json().catch(() => null) : await res.text().catch(() => '')
+
+        const isProbablyHtml = (val) => {
+          if (typeof val !== 'string') return false
+          const s = val.trim().slice(0, 300).toLowerCase()
+          return s.startsWith('<!doctype html') || s.startsWith('<html') || s.includes('<html')
+        }
+
         const msg =
           (payload && typeof payload === 'object' && (payload.message || payload.error)) ||
-          (typeof payload === 'string' && payload) ||
+          (typeof payload === 'string' && payload && !isProbablyHtml(payload) ? payload : '') ||
           `${res.status} ${res.statusText}`
         const err = new Error(String(msg))
         err.status = res.status

@@ -84,9 +84,13 @@
                 <!-- Email -->
                 <label class="block space-y-1.5">
                   <span class="text-sm font-semibold">Email</span>
-                  <input v-model.trim="email" type="email" class="ink-input py-2.5" placeholder="nama@pandu.id"
+                  <input v-model.trim="email" list="register-email-history" type="email" class="ink-input py-2.5" placeholder="nama@pandu.id"
                     autocomplete="email" />
                 </label>
+
+                <datalist id="register-email-history">
+                  <option v-for="e in emailOptions" :key="e" :value="e" />
+                </datalist>
 
                 <!-- Password -->
                 <label class="block space-y-1.5">
@@ -158,12 +162,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 
 import BaseButton from '@/components/ui/BaseButton.vue'
 import continuousLearning from '@/assets/images/continuous-learning.svg'
 import { getServices } from '@/services'
+import { readLoginEmailHistory } from '@/utils/loginHistory'
 
 const router = useRouter()
 const services = getServices()
@@ -173,6 +178,8 @@ const email = ref('')
 const password = ref('')
 const registrationCode = ref('')
 const showPassword = ref(false)
+
+const emailOptions = computed(() => readLoginEmailHistory().map((x) => x.email))
 
 const isLoading = ref(false)
 const errorMessage = ref('')

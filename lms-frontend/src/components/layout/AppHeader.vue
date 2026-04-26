@@ -26,6 +26,7 @@
         >
           Quiz
         </RouterLink>
+
         <RouterLink
           v-if="canManageCodes"
           to="/registration-codes"
@@ -33,14 +34,40 @@
         >
           Codes
         </RouterLink>
-        <button
-          v-if="auth.token"
-          type="button"
-          class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm"
-          @click="onLogout"
+        
+        <RouterLink
+          v-if="auth.token && canApprovePw"
+          to="/inbox"
+          class="relative grid h-10 w-10 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm"
+          aria-label="Inbox"
+          title="Inbox"
         >
-          Logout
-        </button>
+          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+            <path
+              d="M4 4h16v10a2 2 0 0 1-2 2h-3l-3 3-3-3H6a2 2 0 0 1-2-2V4Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            v-if="inboxBadge"
+            class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
+          >
+            {{ inboxBadge > 99 ? '99+' : inboxBadge }}
+          </span>
+        </RouterLink>
+
+
+        <RouterLink
+          v-if="auth.token"
+          to="/profile"
+          class="grid h-10 w-10 place-items-center overflow-hidden rounded-full border-2 border-ink bg-paper shadow-ink-sm"
+          aria-label="Profile"
+          title="Profile"
+        >
+          <img :src="profilePhotoSrc" alt="Profile" class="h-full w-full object-cover" />
+        </RouterLink>
         <RouterLink
           v-else
           to="/login"
@@ -50,7 +77,40 @@
         </RouterLink>
       </nav>
 
-      <div class="sm:hidden">
+      <div class="flex items-center gap-2 sm:hidden">
+        <RouterLink
+          v-if="auth.token && canApprovePw"
+          to="/inbox"
+          class="relative grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm"
+          aria-label="Inbox"
+          title="Inbox"
+        >
+          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+            <path
+              d="M4 4h16v10a2 2 0 0 1-2 2h-3l-3 3-3-3H6a2 2 0 0 1-2-2V4Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            v-if="inboxBadge"
+            class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
+          >
+            {{ inboxBadge > 99 ? '99+' : inboxBadge }}
+          </span>
+        </RouterLink>
+
+        <RouterLink
+          v-if="auth.token"
+          to="/profile"
+          class="grid h-11 w-11 place-items-center overflow-hidden rounded-full border-2 border-ink bg-paper shadow-ink-sm"
+          aria-label="Profile"
+          title="Profile"
+        >
+          <img :src="profilePhotoSrc" alt="Profile" class="h-full w-full object-cover" />
+        </RouterLink>
+
         <button
           ref="mobileMenuButtonRef"
           type="button"
@@ -103,6 +163,14 @@
             Quiz
           </RouterLink>
           <RouterLink
+            v-if="auth.token"
+            to="/profile"
+            class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
+            @click="onMobileNavClick"
+          >
+            Profile
+          </RouterLink>
+          <RouterLink
             v-if="canManageCodes"
             to="/registration-codes"
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
@@ -110,15 +178,6 @@
           >
             Codes
           </RouterLink>
-
-          <button
-            v-if="auth.token"
-            type="button"
-            class="mt-2 rounded-2xl border-2 border-ink bg-ink px-4 py-3 text-sm font-extrabold text-paper shadow-ink-sm"
-            @click="onLogoutMobile"
-          >
-            Logout
-          </button>
           <RouterLink
             v-else
             to="/login"
@@ -134,18 +193,25 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { getServices } from '@/services'
 import logoPandu from '@/assets/logo_pandu_.png'
+import defaultPhoto from '@/assets/icons/default.webp'
+import { useProfileStore } from '@/stores/profile'
+import { getServices } from '@/services'
+import { usePasswordChangeInboxStore } from '@/stores/passwordChangeInbox'
 
-const router = useRouter()
 const auth = useAuthStore()
+const profile = useProfileStore()
+const pwInbox = usePasswordChangeInboxStore()
 const services = getServices()
 const canManageCodes = computed(() => auth.user?.role === 'admin' || auth.user?.role === 'teacher')
+const canApprovePw = computed(() => auth.user?.role === 'admin' || auth.user?.role === 'teacher')
+
+const profilePhotoSrc = computed(() => profile.photoUrl || defaultPhoto)
+const inboxBadge = computed(() => pwInbox.unseenCount)
 
 const mobileMenuOpen = ref(false)
 const mobileMenuRef = ref(null)
@@ -179,19 +245,63 @@ function onKeydown(e) {
   mobileMenuOpen.value = false
 }
 
-async function onLogout() {
-  await auth.logout({ services })
-  router.push('/login')
-}
-
-async function onLogoutMobile() {
-  mobileMenuOpen.value = false
-  await onLogout()
-}
-
 onMounted(() => {
   document.addEventListener('click', onDocClick)
   window.addEventListener('keydown', onKeydown)
+})
+
+watch(
+  () => auth.token,
+  async (token) => {
+    if (!token) return
+    // Best-effort: load photo for the navbar avatar.
+    try {
+      await profile.fetchMyPhoto({ services })
+    } catch {
+      // ignore
+    }
+
+    if (canApprovePw.value) {
+      try {
+        await pwInbox.fetchInbox({ services, force: true, page: 1, perPage: 50 })
+      } catch {
+        // ignore
+      }
+    }
+  },
+  { immediate: true }
+)
+
+let inboxTimer = null
+
+function stopInboxTimer() {
+  if (inboxTimer) window.clearInterval(inboxTimer)
+  inboxTimer = null
+}
+
+function startInboxTimer() {
+  stopInboxTimer()
+  if (!auth.token || !canApprovePw.value) return
+  inboxTimer = window.setInterval(async () => {
+    if (!auth.token || !canApprovePw.value) return
+    try {
+      await pwInbox.fetchInbox({ services, force: true, page: 1, perPage: 50 })
+    } catch {
+      // ignore
+    }
+  }, 30_000)
+}
+
+watch(
+  () => `${auth.token ? '1' : '0'}:${String(auth.user?.role || '')}`,
+  () => {
+    startInboxTimer()
+  },
+  { immediate: true }
+)
+
+onBeforeUnmount(() => {
+  stopInboxTimer()
 })
 
 onBeforeUnmount(() => {

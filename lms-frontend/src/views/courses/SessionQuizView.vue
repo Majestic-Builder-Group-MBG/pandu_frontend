@@ -1164,11 +1164,8 @@
                 :key="`podium-${rank}`"
                 class="flex flex-col items-center gap-2"
               >
-                <div
-                  class="grid h-12 w-12 place-items-center rounded-full border-2 border-ink shadow-ink-sm"
-                  :class="rank === 1 ? 'bg-accent' : rank === 2 ? 'bg-ocean-50' : 'bg-paper'"
-                >
-                  <span class="text-xs font-extrabold">{{ initials(leaderboardByRank[rank]?.name) }}</span>
+                <div class="h-12 w-12 overflow-hidden rounded-full border-2 border-ink bg-paper shadow-ink-sm">
+                  <img :src="avatarSrcForRow(leaderboardByRank[rank])" alt="Avatar" class="h-full w-full object-cover" />
                 </div>
 
                 <p class="max-w-[100px] truncate text-xs font-extrabold text-ink">
@@ -1197,8 +1194,8 @@
           <section v-if="myLeaderboardRow" class="rounded-3xl border-2 border-ink bg-accent p-4 shadow-ink-sm">
             <div class="flex items-center justify-between gap-3">
               <div class="flex min-w-0 items-center gap-3">
-                <div class="grid h-11 w-11 place-items-center rounded-full border-2 border-ink bg-paper shadow-ink-sm">
-                  <span class="text-xs font-extrabold">{{ initials(myLeaderboardRow.name) }}</span>
+                <div class="h-11 w-11 overflow-hidden rounded-full border-2 border-ink bg-paper shadow-ink-sm">
+                  <img :src="avatarSrcForRow(myLeaderboardRow)" alt="Avatar" class="h-full w-full object-cover" />
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-extrabold text-ink">{{ myLeaderboardRow.name }}</p>
@@ -1264,12 +1261,15 @@ import { getServices } from '@/services'
 import { useAuthStore } from '@/stores/auth'
 import { useModulesStore } from '@/stores/modules'
 import { normalizeListResponse } from '@/services/mappers/list'
+import defaultPhoto from '@/assets/icons/default.webp'
+import { useProfileStore } from '@/stores/profile'
 
 const route = useRoute()
 const router = useRouter()
 const services = getServices()
 const auth = useAuthStore()
 const modules = useModulesStore()
+const profile = useProfileStore()
 
 const moduleId = computed(() => Number(route.params.moduleId))
 const sessionId = computed(() => Number(route.params.sessionId))
@@ -1290,27 +1290,17 @@ const bannerUrlStatus = ref('idle')
 
 function quizHasBanner(q) {
   if (!q) return false
-  const flag = q?.has_banner ?? q?.hasBanner
-  if (typeof flag === 'boolean') return flag
 
-  const rawUrl =
-    q?.banner_download_url ??
-    q?.bannerDownloadUrl ??
-    q?.banner_url ??
-    q?.bannerUrl ??
-    q?.banner_path ??
-    q?.bannerPath ??
-    q?.banner_image_path ??
-    q?.bannerImagePath
+  // Backend contract: has_banner controls whether we should call GET /quiz/banner.
+  const flagRaw = q?.has_banner ?? q?.hasBanner
+  const flag = toBoolLoose(flagRaw)
+  if (flag != null) return flag
 
-  if (typeof rawUrl === 'string') {
-    const s = rawUrl.trim()
-    return Boolean(s) && s !== 'null' && s !== 'undefined'
-  }
-
-  // If the API doesn't provide any banner fields, fall back to previous behavior
-  // (we'll try fetching and treat 404 as "no banner").
-  return rawUrl != null
+  // Fallback for older payloads: only treat as banner when download url exists.
+  const rawUrl = q?.banner_download_url ?? q?.bannerDownloadUrl
+  if (typeof rawUrl !== 'string') return false
+  const s = rawUrl.trim()
+  return Boolean(s) && s !== 'null' && s !== 'undefined'
 }
 
 const activeTab = ref('overview')
@@ -1568,6 +1558,13 @@ onMounted(async () => {
     } catch {
       // ignore
     }
+  }
+
+  // Best-effort: load current user's profile photo for leaderboard avatars.
+  try {
+    await profile.fetchMyPhoto({ services })
+  } catch {
+    // ignore
   }
 
   await loadQuiz()
@@ -1899,6 +1896,13 @@ async function openStudentScore() {
   } finally {
     studentScoreStatus.value = 'idle'
   }
+}
+
+function avatarSrcForRow(r) {
+  // Only "me" has a dedicated photo endpoint for now.
+  const uid = auth.user?.id ?? auth.user?.user_id ?? auth.user?.userId ?? auth.user?.student_id ?? auth.user?.studentId
+  const isMe = uid != null && r?.key != null && String(r.key) === String(uid)
+  return isMe && profile.photoUrl ? profile.photoUrl : defaultPhoto
 }
 
 function openQuizModal(mode) {

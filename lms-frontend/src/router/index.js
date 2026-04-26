@@ -15,6 +15,8 @@ import CoursesView from '@/views/courses/CoursesView.vue'
 import ModuleSessionsView from '@/views/courses/ModuleSessionsView.vue'
 import SessionQuizView from '@/views/courses/SessionQuizView.vue'
 import RegistrationCodesView from '@/views/admin/RegistrationCodesView.vue'
+import ProfileView from '@/views/profile/ProfileView.vue'
+import PasswordChangeInboxView from '@/views/inbox/PasswordChangeInboxView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 import { useAuthStore } from '@/stores/auth'
 
@@ -109,6 +111,18 @@ const router = createRouter({
       path: '/registration-codes',
       name: 'registration-codes',
       component: RegistrationCodesView,
+      meta: { layout: 'default', requiresAuth: true, roles: ['admin', 'teacher'] },
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
+      meta: { layout: 'default', requiresAuth: true },
+    },
+    {
+      path: '/inbox',
+      name: 'inbox',
+      component: PasswordChangeInboxView,
       meta: { layout: 'default', requiresAuth: true, roles: ['admin', 'teacher'] },
     },
     {

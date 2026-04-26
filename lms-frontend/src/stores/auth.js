@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { useEnrollmentsStore } from '@/stores/enrollments'
 import { useModuleBannersStore } from '@/stores/moduleBanners'
+import { useProfileStore } from '@/stores/profile'
+import { usePasswordChangeInboxStore } from '@/stores/passwordChangeInbox'
 
 const LS_KEY = 'pandu:lms:auth'
 
@@ -76,6 +78,8 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       const banners = useModuleBannersStore()
       const enrollments = useEnrollmentsStore()
+      const profile = useProfileStore()
+      const pwInbox = usePasswordChangeInboxStore()
       try {
         if (services?.auth?.logout && this.token) {
           await services.auth.logout()
@@ -85,6 +89,8 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         banners.revokeAll()
         enrollments.clear()
+        profile.clear()
+        pwInbox.clear()
         this.clearSession()
         this.status = 'idle'
       }
