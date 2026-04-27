@@ -41,6 +41,7 @@ export const useProfileStore = defineStore('profile', {
       this.error = null
       try {
         const res = await services.profile.updateMe({ name })
+        if (res?.success === false) throw new Error(res?.message || 'Gagal menyimpan profile')
         const data = res?.data ?? res
         // Backend might return full profile or just updated fields.
         this.me = { ...(this.me || {}), ...(data?.data ?? data) }

@@ -38,21 +38,19 @@
         <RouterLink
           v-if="auth.token && canApprovePw"
           to="/inbox"
-          class="relative grid h-10 w-10 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm"
+          class="relative grid h-10 w-10 place-items-center rounded-xl text-ink/70 transition hover:bg-accent/20 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
           aria-label="Inbox"
           title="Inbox"
         >
-          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <svg viewBox="0 0 640 640" class="h-6 w-6" aria-hidden="true">
             <path
-              d="M4 4h16v10a2 2 0 0 1-2 2h-3l-3 3-3-3H6a2 2 0 0 1-2-2V4Z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linejoin="round"
+              fill="currentColor"
+              d="M155.8 96C123.9 96 96.9 119.4 92.4 150.9L64.6 345.2C64.2 348.2 64 351.2 64 354.3L64 480C64 515.3 92.7 544 128 544L512 544C547.3 544 576 515.3 576 480L576 354.3C576 351.3 575.8 348.2 575.4 345.2L547.6 150.9C543.1 119.4 516.1 96 484.2 96L155.8 96zM155.8 160L484.3 160L511.7 352L451.8 352C439.7 352 428.6 358.8 423.2 369.7L408.9 398.3C403.5 409.1 392.4 416 380.3 416L259.9 416C247.8 416 236.7 409.2 231.3 398.3L217 369.7C211.6 358.9 200.5 352 188.4 352L128.3 352L155.8 160z"
             />
           </svg>
           <span
             v-if="inboxBadge"
-            class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
+            class="absolute right-0 top-0 grid h-5 min-w-5 -translate-y-1/3 translate-x-1/3 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
           >
             {{ inboxBadge > 99 ? '99+' : inboxBadge }}
           </span>
@@ -81,21 +79,19 @@
         <RouterLink
           v-if="auth.token && canApprovePw"
           to="/inbox"
-          class="relative grid h-11 w-11 place-items-center rounded-xl border-2 border-ink bg-paper shadow-ink-sm"
+          class="relative grid h-11 w-11 place-items-center rounded-xl text-ink/70 transition hover:bg-accent/20 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
           aria-label="Inbox"
           title="Inbox"
         >
-          <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
+          <svg viewBox="0 0 640 640" class="h-6 w-6" aria-hidden="true">
             <path
-              d="M4 4h16v10a2 2 0 0 1-2 2h-3l-3 3-3-3H6a2 2 0 0 1-2-2V4Z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linejoin="round"
+              fill="currentColor"
+              d="M155.8 96C123.9 96 96.9 119.4 92.4 150.9L64.6 345.2C64.2 348.2 64 351.2 64 354.3L64 480C64 515.3 92.7 544 128 544L512 544C547.3 544 576 515.3 576 480L576 354.3C576 351.3 575.8 348.2 575.4 345.2L547.6 150.9C543.1 119.4 516.1 96 484.2 96L155.8 96zM155.8 160L484.3 160L511.7 352L451.8 352C439.7 352 428.6 358.8 423.2 369.7L408.9 398.3C403.5 409.1 392.4 416 380.3 416L259.9 416C247.8 416 236.7 409.2 231.3 398.3L217 369.7C211.6 358.9 200.5 352 188.4 352L128.3 352L155.8 160z"
             />
           </svg>
           <span
             v-if="inboxBadge"
-            class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
+            class="absolute right-0 top-0 grid h-5 min-w-5 -translate-y-1/3 translate-x-1/3 place-items-center rounded-full border-2 border-ink bg-accent px-1 text-[10px] font-black leading-none"
           >
             {{ inboxBadge > 99 ? '99+' : inboxBadge }}
           </span>

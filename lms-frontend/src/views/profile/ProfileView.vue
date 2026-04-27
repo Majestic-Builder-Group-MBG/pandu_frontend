@@ -323,6 +323,13 @@ const photoSrc = computed(() => profile.photoUrl || defaultPhoto)
 
 const nameDraft = ref('')
 
+watch(editOpen, (open) => {
+  if (!open) return
+  // Keep draft in sync with the latest stored profile.
+  nameDraft.value = String(profile.me?.name || auth.user?.name || auth.user?.full_name || auth.user?.fullName || '')
+  profile.error = null
+})
+
 onMounted(async () => {
   try {
     await profile.fetchMe({ services })
@@ -347,10 +354,18 @@ async function saveName() {
 
   try {
     await profile.updateMe({ services, name: next })
+    // Verify latest data from backend before closing.
+    try {
+      await profile.fetchMe({ services, force: true })
+    } catch {
+      // ignore; update already succeeded
+    }
     // Keep auth session display name in sync.
     if (auth.user) {
       auth.setSession({ user: { ...auth.user, name: next, full_name: next, fullName: next }, token: auth.token }, { persist: true })
     }
+
+    editOpen.value = false
   } catch {
     // store already sets error
   }
