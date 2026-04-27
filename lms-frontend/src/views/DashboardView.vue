@@ -14,33 +14,7 @@
         </div>
       </header>
 
-      <div class="grid gap-4 lg:grid-cols-3">
-        <StatCard title="Kelas Diampu" :value="classesCount">
-           <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
-            <path
-              d="M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3Z"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M8 11c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3Z"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M3.5 19c.4-2.3 2.3-4 4.7-4h.6c2.4 0 4.3 1.7 4.7 4"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-            <path
-              d="M14 19c.3-2 1.9-3.5 4-3.8"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-            />
-          </svg>
-        </StatCard>
+      <div class="grid gap-4 lg:grid-cols-2">
 
         <StatCard title="Kursus Aktif" :value="activeCoursesCount" variant="ocean">
            <svg viewBox="0 0 24 24" fill="none" class="h-5 w-5" aria-hidden="true">
