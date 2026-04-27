@@ -8,38 +8,38 @@
             <p class="font-display text-sm font-semibold">Pandu</p>
           </div>
           <p class="mt-3 max-w-md text-sm font-semibold text-ink/70">
-            Neo-brutal learning platform untuk modul, kuis, AI generate soal dari PDF, dan penilaian essay yang jelas.
-            Dibuat sebagai MVP untuk demo lomba.
+            Pandu LMS membantu mengelola kelas, materi, sesi, dan kuis online dalam satu dashboard.
+            Buat draft soal dari PDF, review, lalu publikasikan saat sudah siap.
           </p>
         </div>
 
         <div class="grid gap-8 sm:grid-cols-3">
           <div class="grid gap-2">
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Product</p>
-            <RouterLink to="/" class="footer-link">Home</RouterLink>
-            <RouterLink to="/features" class="footer-link">Features</RouterLink>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Produk</p>
+            <RouterLink to="/" class="footer-link">Beranda</RouterLink>
+            <RouterLink to="/features" class="footer-link">Fitur</RouterLink>
             <RouterLink to="/dashboard" class="footer-link">Dashboard</RouterLink>
           </div>
 
           <div class="grid gap-2">
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Company</p>
-            <RouterLink to="/about" class="footer-link">About</RouterLink>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Tentang</p>
+            <RouterLink to="/about" class="footer-link">Tentang Pandu</RouterLink>
             <RouterLink to="/contact" class="footer-link">Demo</RouterLink>
             <RouterLink to="/login" class="footer-link">Login</RouterLink>
           </div>
 
           <div class="grid gap-2">
             <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Legal</p>
-            <RouterLink to="/privacy" class="footer-link">Privacy Policy</RouterLink>
-            <RouterLink to="/terms" class="footer-link">Terms</RouterLink>
-            <RouterLink to="/cookies" class="footer-link">Cookie Policy</RouterLink>
+            <RouterLink to="/privacy" class="footer-link">Kebijakan Privasi</RouterLink>
+            <RouterLink to="/terms" class="footer-link">Syarat & Ketentuan</RouterLink>
+            <RouterLink to="/cookies" class="footer-link">Kebijakan Cookie</RouterLink>
           </div>
         </div>
       </div>
 
       <div class="mt-10 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink pt-6">
         <p class="text-xs font-bold text-ink/60">© {{ year }} Pandu LMS. All rights reserved.</p>
-        <p class="text-xs font-bold text-ink/60">Built for demo, optimized for clarity.</p>
+        <p class="text-xs font-bold text-ink/60">Dibangun untuk alur belajar yang jelas.</p>
       </div>
     </div>
   </footer>

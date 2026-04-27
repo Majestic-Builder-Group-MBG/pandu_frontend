@@ -11,9 +11,6 @@
             </h1>
             <p class="mt-2 text-sm font-semibold text-ink/60">Role: {{ roleLabel }}</p>
           </div>
-          <div class="grid h-12 w-12 place-items-center rounded-2xl border-2 border-ink bg-paper shadow-ink-sm">
-            <span class="text-sm font-extrabold">{{ initials }}</span>
-          </div>
         </div>
       </header>
 

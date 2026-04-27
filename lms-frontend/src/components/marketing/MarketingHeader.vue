@@ -15,17 +15,17 @@
           <component :is="isLanding ? 'a' : RouterLink" :href="isLanding ? '#' : undefined"
             :to="!isLanding ? { name: 'landing' } : undefined"
             class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink">
-            Home
+            Beranda
           </component>
 
           <RouterLink to="/features"
             class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink">
-            Features
+            Fitur
           </RouterLink>
 
           <RouterLink to="/about"
             class="rounded-xl border-2 border-transparent px-3 py-2 text-sm font-semibold text-ink/80 hover:border-ink hover:bg-accent/40 hover:text-ink">
-            About
+            Tentang
           </RouterLink>
 
           <RouterLink to="/contact"
@@ -39,13 +39,13 @@
           <RouterLink v-if="auth.token" to="/dashboard"
             class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm">
             <span class="flex justify-center align-center gap-2">
-              <img :src="loginIcon" alt="icon-login" class="h-4"> Get Started
+              <img :src="loginIcon" alt="ikon masuk" class="h-4"> Mulai
             </span>
           </RouterLink>
           <RouterLink v-else to="/register"
             class="rounded-xl border-2 border-ink bg-ink px-3 py-2 text-sm font-semibold text-paper shadow-ink-sm">
             <span class="flex justify-center align-center gap-2">
-              <img :src="loginIcon" alt="icon-login" class="h-4"> Get Started
+              <img :src="loginIcon" alt="ikon masuk" class="h-4"> Mulai
             </span>
           </RouterLink>
         </div>
@@ -78,19 +78,19 @@
             :to="!isLanding ? { name: 'landing' } : undefined"
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
             @click="onMobileNavClick">
-            Home
+            Beranda
           </component>
 
           <RouterLink to="/features"
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
             @click="onMobileNavClick">
-            Features
+            Fitur
           </RouterLink>
 
           <RouterLink to="/about"
             class="rounded-2xl border-2 border-ink bg-paper px-4 py-3 text-sm font-extrabold shadow-ink-sm"
             @click="onMobileNavClick">
-            About
+            Tentang
           </RouterLink>
 
           <RouterLink to="/contact"

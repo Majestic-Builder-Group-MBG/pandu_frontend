@@ -12,23 +12,23 @@
 
         <div class="relative grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">About</p>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Tentang</p>
             <h1 class="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
               Pandu,
               <span class="underline decoration-accent decoration-[12px] underline-offset-[8px]">LMS yang jelas</span>
-              untuk demo MVP.
+              untuk kelas yang lebih terstruktur.
             </h1>
             <p class="mt-5 max-w-xl text-sm font-semibold text-ink/70">
-              Project ini dibuat sebagai MVP untuk demo lomba. Fokusnya bukan hanya daftar fitur, tapi juga flow yang rapi
-              dan mudah dibuktikan: modul dan sesi sebagai struktur kelas, kuis yang bisa dibuat cepat (termasuk dari PDF),
-              serta penilaian yang konsisten supaya hasilnya bisa dipertanggungjawabkan.
+              Pandu LMS membantu pengajar menyusun modul dan sesi, menjalankan kuis online, serta memantau hasil belajar dalam satu alur.
+              Kamu bisa menyiapkan soal lebih cepat dari materi PDF, lalu review dan edit sebelum dipublikasikan.
+              Hasilnya: kelas lebih rapi, aturan lebih jelas, dan penilaian lebih konsisten.
             </p>
 
           </div>
 
           <div class="relative">
             <div class="mx-auto w-full max-w-md">
-              <img :src="aboutHeroVector" alt="Pandu" class="w-full select-none object-contain" />
+              <img :src="aboutHeroVector" alt="Ilustrasi Pandu LMS" class="w-full select-none object-contain" />
             </div>
           </div>
         </div>
@@ -37,10 +37,10 @@
       <section class="mt-12">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">What We Optimize</p>
-            <h2 class="mt-2 text-3xl font-extrabold">Tiga hal yang bikin flow terasa enak.</h2>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Fokus Kami</p>
+            <h2 class="mt-2 text-3xl font-extrabold">Tiga hal yang paling kamu rasakan.</h2>
             <p class="mt-2 max-w-2xl text-sm font-semibold text-ink/70">
-              Bukan “fitur banyak”, tapi keputusan desain yang membuat demo terlihat matang dan mudah dinilai.
+              Bukan sekadar menambah fitur, tapi memastikan pengalaman belajar terasa ringkas, jelas, dan nyaman digunakan.
             </p>
           </div>
         </div>
@@ -48,31 +48,31 @@
         <div class="mt-8 grid gap-5 lg:grid-cols-3">
           <article class="overflow-hidden rounded-[2.5rem] bg-paper p-7 shadow-[0_18px_40px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
             <div class="grid place-items-center rounded-2xl bg-cloud p-5">
-              <img :src="aboutVectorQuestions" alt="Clarity" class="h-28 w-auto select-none object-contain" />
+              <img :src="aboutVectorQuestions" alt="Ilustrasi kejelasan alur belajar" class="h-28 w-auto select-none object-contain" />
             </div>
-            <h3 class="mt-5 text-xl font-extrabold">Clarity</h3>
+            <h3 class="mt-5 text-xl font-extrabold">Jelas</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Status dan aturan kebaca. Publish, schedule, submit, review: jelas, konsisten, dan tidak bikin user menebak.
+              Status kelas dan aturan kuis mudah dipahami. Mulai, kumpulkan, review, sampai nilai ditampilkan dengan alur yang konsisten.
             </p>
           </article>
 
           <article class="overflow-hidden rounded-[2.5rem] bg-paper p-7 shadow-[0_18px_40px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
             <div class="grid place-items-center rounded-2xl bg-accent/20 p-5">
-              <img :src="aboutVectorAi" alt="Speed" class="h-28 w-auto select-none object-contain" />
+              <img :src="aboutVectorAi" alt="Ilustrasi pembuatan soal lebih cepat" class="h-28 w-auto select-none object-contain" />
             </div>
-            <h3 class="mt-5 text-xl font-extrabold">Speed</h3>
+            <h3 class="mt-5 text-xl font-extrabold">Lebih Cepat</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              AI bantu bikin draft soal dari PDF. Teacher tetap pegang kontrol untuk edit dan review sebelum dipakai.
+              Buat draft soal dari PDF untuk menghemat waktu. Tetap ada proses review dan edit sebelum soal dipakai di kelas.
             </p>
           </article>
 
           <article class="overflow-hidden rounded-[2.5rem] bg-paper p-7 shadow-[0_18px_40px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
             <div class="grid place-items-center rounded-2xl bg-ocean-50 p-5">
-              <img :src="aboutVectorTrust" alt="Trust" class="h-28 w-auto select-none object-contain" />
+              <img :src="aboutVectorTrust" alt="Ilustrasi penilaian yang terpercaya" class="h-28 w-auto select-none object-contain" />
             </div>
-            <h3 class="mt-5 text-xl font-extrabold">Trust</h3>
+            <h3 class="mt-5 text-xl font-extrabold">Terpercaya</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Scoring tidak ngaco: MCQ bisa auto, essay bisa manual. Total score mengikuti kontrak points per soal.
+              Penilaian transparan dan konsisten. Pilihan ganda bisa otomatis, esai bisa dinilai manual dengan rubrik dan poin yang jelas.
             </p>
           </article>
         </div>
@@ -83,16 +83,45 @@
           <h2 class="text-2xl font-extrabold">FAQ</h2>
           <div class="mt-5 space-y-3">
             <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
-              <summary class="cursor-pointer text-sm font-extrabold">Kenapa dominan kuning?</summary>
-              <p class="mt-2 text-sm font-semibold text-ink/70">Kuning = highlight. Putih = ruang. Biru = aksen untuk fokus.</p>
+              <summary class="cursor-pointer text-sm font-extrabold">Pandu LMS cocok untuk siapa?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Pandu cocok untuk sekolah, bootcamp, trainer, dan pengajar yang ingin alur kelas lebih terstruktur: modul, sesi per pertemuan, kuis online, dan rekap nilai.
+              </p>
             </details>
+
             <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
-              <summary class="cursor-pointer text-sm font-extrabold">AI generate dari apa?</summary>
-              <p class="mt-2 text-sm font-semibold text-ink/70">Untuk MVP, fokus PDF-only sesuai flow generate-draft dan demo page.</p>
+              <summary class="cursor-pointer text-sm font-extrabold">Bagaimana alur modul dan sesi bekerja?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Susun materi ke dalam modul, lalu buat sesi untuk tiap pertemuan. Kuis bisa diakses dari sesi agar siswa langsung tahu tugas yang relevan dengan pertemuan tersebut.
+              </p>
             </details>
+
             <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
-              <summary class="cursor-pointer text-sm font-extrabold">Leaderboard bisa dipublikasi?</summary>
-              <p class="mt-2 text-sm font-semibold text-ink/70">Bisa. Visibility diatur teacher/admin via endpoint leaderboard-visibility.</p>
+              <summary class="cursor-pointer text-sm font-extrabold">Bisa buat soal dari materi PDF?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Bisa. Kamu dapat mengubah materi PDF menjadi draft soal untuk mempercepat persiapan kuis. Setelah itu, pengajar bisa review dan edit sebelum dipublikasikan.
+              </p>
+            </details>
+
+            <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
+              <summary class="cursor-pointer text-sm font-extrabold">Bagaimana penilaian pilihan ganda dan esai?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Pilihan ganda dapat dinilai otomatis. Untuk esai, pengajar dapat memberi penilaian dan umpan balik secara manual agar hasilnya lebih akurat.
+              </p>
+            </details>
+
+            <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
+              <summary class="cursor-pointer text-sm font-extrabold">Apa itu attempts dan review?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Attempts adalah riwayat pengerjaan kuis oleh siswa. Review membantu pengajar meninjau jawaban, memberi umpan balik, dan memastikan penilaian konsisten.
+              </p>
+            </details>
+
+            <details class="rounded-2xl bg-cloud p-5 ring-1 ring-ink/10">
+              <summary class="cursor-pointer text-sm font-extrabold">Leaderboard bisa ditampilkan untuk siapa saja?</summary>
+              <p class="mt-2 text-sm font-semibold text-ink/70">
+                Bisa disesuaikan. Kamu dapat menampilkan leaderboard untuk semua peserta, atau membatasinya hanya untuk kelas tertentu.
+              </p>
             </details>
           </div>
         </article>

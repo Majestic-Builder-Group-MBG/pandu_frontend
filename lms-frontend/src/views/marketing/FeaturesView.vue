@@ -12,11 +12,11 @@
 
         <div class="relative grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Features</p>
-            <h1 class="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">Pandu LMS, fokus ke alur kelas.</h1>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Fitur</p>
+            <h1 class="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">Pandu LMS untuk alur kelas yang rapi.</h1>
             <p class="mt-5 max-w-xl text-sm font-semibold text-ink/70">
-              MVP ini dirancang untuk demo lomba: jelas, cepat dipahami, dan nunjukin end-to-end flow dari modul, sesi, kuis,
-              penilaian, sampai leaderboard.
+              Pandu membantu sekolah, trainer, dan pengajar mengelola kelas dari awal sampai akhir: modul dan sesi, kuis online,
+              penilaian, sampai leaderboard. Semua dirancang supaya alurnya mudah diikuti dan hasilnya gampang dipantau.
             </p>
 
             <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -24,7 +24,7 @@
                 to="/contact"
                 class="inline-flex rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
               >
-                Coba Demo AI
+                Coba Demo
               </RouterLink>
               <RouterLink
                 to="/"
@@ -49,7 +49,7 @@
             <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Core Flow</p>
             <h2 class="mt-2 text-3xl font-extrabold">Satu alur, dari kelas sampai nilai.</h2>
             <p class="mt-2 max-w-2xl text-sm font-semibold text-ink/70">
-              Empat blok ini disusun buat presentasi: urut, ringkas, dan gampang di-follow tanpa banyak konteks.
+              Empat blok ini mewakili flow utama di Pandu: susun kelas, jalankan kuis, nilai hasil, lalu lihat progres.
             </p>
           </div>
         </div>
@@ -65,11 +65,11 @@
             </div>
             <h3 class="mt-5 text-2xl font-extrabold">Modules & Sessions</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Struktur kelas yang rapi: modul sebagai container, sesi sebagai jadwal. Status sesi mengontrol akses quiz supaya student tidak bingung.
+              Susun materi per modul dan atur sesi per pertemuan. Akses kuis bisa mengikuti status sesi supaya siswa tahu kapan harus mulai.
             </p>
             <ul class="mt-4 list-disc pl-5 text-sm font-semibold text-ink/70">
-              <li>Jadwal sesi dan akses yang konsisten</li>
-              <li>Materi dan quiz menempel ke sesi</li>
+              <li>Jadwal pertemuan lebih terstruktur</li>
+              <li>Materi dan kuis terhubung ke sesi</li>
             </ul>
           </article>
 
@@ -93,11 +93,11 @@
             </div>
             <h3 class="mt-5 text-2xl font-extrabold">Quiz Hub</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Akses kuis dibuat sederhana: pilih modul dan sesi, lalu masuk ke quiz yang tersedia. Cocok untuk demo karena alurnya jelas.
+              Akses kuis dibuat sederhana: pilih modul dan sesi, lalu masuk ke kuis yang tersedia. Alurnya jelas untuk penggunaan harian.
             </p>
             <ul class="mt-4 list-disc pl-5 text-sm font-semibold text-ink/70">
               <li>Masuk kuis lewat konteks kelas</li>
-              <li>Ringan untuk usage harian</li>
+              <li>Ringan dan mudah dipahami</li>
             </ul>
           </article>
 
@@ -112,11 +112,11 @@
             </div>
             <h3 class="mt-5 text-2xl font-extrabold">Attempts & Review</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Penilaian dibuat transparan: MCQ auto, essay manual. Total score mengikuti kontrak points per soal untuk menjaga konsistensi.
+              Penilaian dibuat transparan: pilihan ganda bisa otomatis, esai dinilai manual. Total skor dijaga konsisten dengan aturan poin per soal.
             </p>
             <ul class="mt-4 list-disc pl-5 text-sm font-semibold text-ink/70">
-              <li>Manual feedback dan manual points</li>
-              <li>Agregasi nilai konsisten</li>
+              <li>Feedback dan penilaian esai yang jelas</li>
+              <li>Rekap nilai lebih rapi</li>
             </ul>
           </article>
 
@@ -131,13 +131,13 @@
                 <path d="M20 20l-4.2-4.2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
               </svg>
             </div>
-            <h3 class="mt-5 text-2xl font-extrabold">AI Generate (PDF)</h3>
+            <h3 class="mt-5 text-2xl font-extrabold">Draft Soal dari PDF</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Untuk demo: upload PDF, generate draft soal, lalu apply ke quiz. Teacher tetap punya kontrol untuk edit dan review.
+              Upload PDF materi, buat draft soal, lalu review sebelum dimasukkan ke kuis. Pengajar tetap memegang kontrol penuh untuk edit dan finalisasi.
             </p>
             <ul class="mt-4 list-disc pl-5 text-sm font-semibold text-ink/70">
-              <li>Draft cepat untuk kelas besar</li>
-              <li>Workflow tetap bisa diaudit</li>
+              <li>Cepat menyiapkan bank soal</li>
+              <li>Alur review lebih aman</li>
             </ul>
           </article>
         </div>
@@ -146,31 +146,66 @@
       <section class="mt-12 overflow-hidden rounded-[3rem] bg-cloud p-8 sm:p-10">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Also Included</p>
-            <h2 class="mt-2 text-3xl font-extrabold">Detail yang bikin produk terasa matang.</h2>
+            <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Tambahan</p>
+            <h2 class="mt-2 text-3xl font-extrabold">Fitur pendukung untuk pengalaman belajar yang lebih baik.</h2>
             <p class="mt-2 max-w-2xl text-sm font-semibold text-ink/70">
-              Dipilih yang relevan untuk demo: trust, kontrol akses, dan visual yang mudah dibaca.
+              Fitur pendukung yang membantu kelas berjalan lebih tertib: progres yang mudah dipantau, akses yang terkelola, dan tampilan yang nyaman dibaca.
             </p>
           </div>
         </div>
 
         <div class="mt-8 grid gap-5 lg:grid-cols-3">
           <article class="rounded-[2rem] bg-paper p-7 shadow-[0_14px_30px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
-            <h3 class="text-xl font-extrabold">Leaderboard</h3>
+            <div class="grid h-14 w-14 place-items-center rounded-2xl bg-accent/40">
+              <svg viewBox="0 0 24 24" fill="none" class="h-7 w-7" aria-hidden="true">
+                <path d="M4 19h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M7 16V9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M12 16V6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                <path d="M17 16v-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+              </svg>
+            </div>
+            <h3 class="mt-5 text-xl font-extrabold">Leaderboard</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Ranking rapi untuk kompetisi. Visibility bisa public/private sesuai kebutuhan kelas.
+              Peringkat kelas untuk melihat capaian belajar secara ringkas dan menjaga semangat belajar.
             </p>
           </article>
           <article class="rounded-[2rem] bg-paper p-7 shadow-[0_14px_30px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
-            <h3 class="text-xl font-extrabold">Role-Based Access</h3>
+            <div class="grid h-14 w-14 place-items-center rounded-2xl bg-ocean-50 text-ocean-700">
+              <svg viewBox="0 0 24 24" fill="none" class="h-7 w-7" aria-hidden="true">
+                <path
+                  d="M12 2l7 4v6c0 5-3 9-7 10-4-1-7-5-7-10V6l7-4Z"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linejoin="round"
+                />
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <h3 class="mt-5 text-xl font-extrabold">Role-Based Access</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Akses disesuaikan role: admin/teacher/student. Area admin dibatasi dengan roles di router.
+              Pengaturan akses berdasarkan peran, sehingga pengajar dan siswa melihat fitur yang sesuai kebutuhannya.
             </p>
           </article>
           <article class="rounded-[2rem] bg-paper p-7 shadow-[0_14px_30px_rgba(18,18,18,0.08)] ring-1 ring-ink/10">
-            <h3 class="text-xl font-extrabold">Neo-Brutal UI</h3>
+            <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper ring-1 ring-ink/10">
+              <svg viewBox="0 0 24 24" fill="none" class="h-7 w-7" aria-hidden="true">
+                <path
+                  d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <h3 class="mt-5 text-xl font-extrabold">Tampilan Kontras</h3>
             <p class="mt-2 text-sm font-semibold text-ink/70">
-              Kontras tinggi, state mudah dibaca, dan interaksi tegas. Cocok untuk demo juri: cepat nangkep.
+              Antarmuka yang bersih dan fokus, memudahkan kamu menemukan informasi penting dengan cepat, baik di desktop maupun ponsel.
             </p>
           </article>
         </div>

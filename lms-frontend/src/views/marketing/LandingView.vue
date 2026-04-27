@@ -14,14 +14,14 @@
             <div class="animate-rise">
 
               <h1 class="mt-6 text-4xl font-extrabold tracking-tight sm:text-6xl">
-                Belajar
+                Kelas online
                 <span class="underline decoration-accent decoration-[12px] underline-offset-[8px]">lebih rapi</span>,
-                quiz cepat, penilaian jelas.
+                kuis lebih cepat, nilai lebih jelas.
               </h1>
 
               <p class="mt-5 max-w-xl text-base font-semibold text-ink/70">
-                Pandu menyatukan modul, sesi, kuis, AI generate dari PDF, dan leaderboard.
-                Fokus ke flow yang gampang dipahami dan enak dipresentasikan.
+                Pandu LMS adalah platform Learning Management System untuk menyusun modul dan sesi, membuat kuis online,
+                serta memantau hasil belajar. Kamu juga bisa membuat draft soal dari PDF, lalu review dan edit sebelum dipublikasikan.
               </p>
 
               <div class="mt-7 flex flex-wrap items-center gap-4">
@@ -51,7 +51,7 @@
             <div class="relative">
               <div class="mx-auto w-full max-w-xl rounded-[3rem] p-6 sm:p-10">
                 <div class="grid place-items-center">
-                  <img :src="heroVector" alt="Illustration" class="w-full max-w-md select-none object-contain" />
+                  <img :src="heroVector" alt="Ilustrasi platform Pandu LMS" class="w-full max-w-md select-none object-contain" />
                 </div>
               </div>
             </div>
@@ -65,10 +65,10 @@
         <div class="mx-auto w-full max-w-6xl px-4 py-20 sm:py-24">
           <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Our Service</p>
+              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Fitur Utama</p>
               <h2 class="mt-2 text-3xl font-extrabold">3 fitur yang paling sering dipakai</h2>
               <p class="mt-2 max-w-2xl text-sm font-semibold text-ink/70">
-                Cukup tiga ini untuk nunjukin flow LMS yang lengkap: struktur kelas, pembuatan kuis yang cepat, dan UI yang enak di mobile.
+                Tiga blok ini mencakup kebutuhan paling umum: struktur kelas yang jelas, pembuatan kuis yang cepat, dan pengalaman yang nyaman di mobile.
               </p>
             </div>
 
@@ -76,7 +76,7 @@
               to="/features"
               class="inline-flex items-center gap-2 rounded-full border-2 border-ink bg-paper px-5 py-2 text-sm font-extrabold shadow-ink-sm transition hover:bg-accent/30 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
             >
-              View All Features
+              Lihat Semua Fitur
               <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4" aria-hidden="true">
                 <path d="M7 17L17 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
                 <path d="M9 7h8v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -95,7 +95,7 @@
               </div>
               <h3 class="mt-5 text-lg font-extrabold">Modul & Sesi</h3>
               <p class="mt-2 text-sm font-semibold text-ink/70">
-                Struktur kelas yang rapi: modul sebagai container, sesi sebagai jadwal. Akses kuis mengikuti status sesi.
+                Susun materi per modul, atur sesi per pertemuan, lalu kunci akses kuis mengikuti jadwal sesi.
               </p>
             </article>
 
@@ -110,9 +110,9 @@
                   <path d="M20 20l-4.2-4.2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
                 </svg>
               </div>
-              <h3 class="mt-5 text-lg font-extrabold">AI Generated Kuis</h3>
+              <h3 class="mt-5 text-lg font-extrabold">Draft Soal dari PDF</h3>
               <p class="mt-2 text-sm font-semibold text-ink/70">
-                Upload PDF, generate draft MCQ dan essay, lalu apply ke quiz. Teacher tetap bisa edit dan review.
+                Ubah materi PDF jadi draft pilihan ganda dan esai. Edit dulu, lalu masukkan ke kuis saat sudah siap.
               </p>
             </article>
 
@@ -124,9 +124,9 @@
                   <path d="M12 18h.01" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
                 </svg>
               </div>
-              <h3 class="mt-5 text-lg font-extrabold">Mobile Friendly</h3>
+              <h3 class="mt-5 text-lg font-extrabold">Nyaman di Mobile</h3>
               <p class="mt-2 text-sm font-semibold text-ink/70">
-                Navigasi jelas, card dan modal tetap kebaca. Cocok untuk student yang akses lewat HP.
+                Navigasi jelas, tampilan tetap kebaca di layar kecil. Cocok untuk siswa yang akses lewat HP.
               </p>
             </article>
           </div>
@@ -142,23 +142,21 @@
               <div class="pointer-events-none absolute -left-6 -top-6 hidden h-10 w-10 rotate-12 rounded-2xl border-2 border-ink bg-accent shadow-ink-sm lg:block" />
               <div class="mx-auto aspect-square w-full max-w-[480px] overflow-hidden">
                 <div class="grid h-full w-full place-items-center p-10 sm:p-14">
-                  <img :src="aboutVector" alt="Pandu preview" class="w-full select-none object-contain" />
+                  <img :src="aboutVector" alt="Ilustrasi dashboard Pandu LMS" class="w-full select-none object-contain" />
                 </div>
               </div>
               <div class="pointer-events-none absolute -bottom-6 right-10 hidden h-12 w-12 -rotate-6 rounded-2xl border-2 border-ink bg-paper shadow-ink-sm lg:block" />
             </div>
 
             <div class="min-w-0">
-              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">About</p>
+              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Tentang</p>
               <h2 class="mt-3 text-3xl font-extrabold sm:text-4xl">
-                UI tegas, flow jelas, siap buat demo.
+                Platform LMS yang fokus ke alur belajar.
               </h2>
               <p class="mt-4 max-w-xl break-words text-sm font-semibold text-ink/70 text-justify">
-                Pandu dibuat untuk nunjukin alur LMS tanpa ribet: modul dan sesi sebagai struktur kelas, akses kuis yang
-                mengikuti status sesi, serta penilaian yang konsisten supaya student dan teacher sama-sama paham aturan main.
-                Untuk demo MVP, kamu juga bisa generate draft soal dari PDF dan langsung apply ke quiz, lalu lanjut ke flow
-                attempts dan review. Semuanya dibungkus UI neo-brutal yang kontras dan tegas, biar status penting cepat kebaca
-                dan presentasi ke juri terasa jelas.
+                Pandu dirancang untuk membantu pengajar dan siswa menjalankan kelas dengan lebih terstruktur: modul dan sesi sebagai pondasi,
+                kuis yang terhubung ke tiap pertemuan, serta penilaian yang transparan supaya semua pihak paham aturan dan progres belajar.
+                Dari menyusun materi, membuat kuis, mengelola attempts, sampai review dan rekap nilai, semuanya ada dalam satu alur.
               </p>
 
               <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -186,14 +184,13 @@
         <div class="mx-auto flex min-h-[80dvh] w-full max-w-6xl items-center px-4 py-16 sm:py-20">
           <div class="grid items-center gap-10 lg:grid-cols-2">
             <div>
-              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Pandu Apps</p>
+              <p class="text-xs font-extrabold uppercase tracking-[0.12em] text-ink/60">Aplikasi Pandu</p>
               <h2 class="mt-3 text-3xl font-extrabold sm:text-4xl">
-                Lihat feel-nya langsung.
+                Coba aplikasinya sekarang.
               </h2>
               <p class="mt-4 max-w-xl text-sm font-semibold text-ink/70">
-                Coba alur Pandu dari dashboard: kelola modul dan sesi, buka quiz dari konteks sesi, lalu lihat attempts dan hasilnya.
-                Untuk versi MVP lomba ini, kita fokus ke flow inti yang gampang dipahami dan gampang dipresentasikan.
-                Kalau kamu belum login, kamu akan diarahkan ke halaman login terlebih dulu, lalu bisa lanjut mencoba fitur-fitur utamanya.
+                Masuk ke dashboard untuk mengelola modul dan sesi, membuka kuis dari tiap sesi, lalu memantau attempts, hasil, dan peringkat.
+                Kalau kamu belum login, kamu akan diarahkan ke halaman login dulu, lalu bisa lanjut mencoba fitur-fiturnya.
               </p>
 
               <div class="mt-8 flex flex-wrap items-center gap-3">
@@ -201,7 +198,7 @@
                   :to="auth.token ? '/dashboard' : '/login'"
                   class="inline-flex rounded-xl border-2 border-ink bg-accent px-6 py-3 text-sm font-extrabold shadow-ink transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                 >
-                  Coba Sekarang!
+                  Masuk dan Coba
                 </RouterLink>
               </div>
             </div>
@@ -217,15 +214,15 @@
 
                 <img
                   :src="tryNowImage"
-                  alt="Pandu LMS on iPhone"
+                  alt="Tampilan Pandu LMS di ponsel"
                   class="w-full max-h-[70dvh] select-none object-contain drop-shadow-[0_22px_55px_rgba(18,18,18,0.16)]"
                 />
 
                 <div class="pointer-events-none absolute -left-6 top-12 hidden rotate-6 rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-[10px] font-extrabold shadow-ink-sm sm:block">
-                  PDF -> Quiz
+                  Demo
                 </div>
                 <div class="pointer-events-none absolute -right-4 bottom-10 hidden -rotate-6 rounded-2xl border-2 border-ink bg-paper px-3 py-2 text-[10px] font-extrabold shadow-ink-sm sm:block">
-                  Mobile-ready
+                  Nyaman di HP
                 </div>
               </div>
             </div>
