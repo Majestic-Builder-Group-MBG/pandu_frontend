@@ -4,6 +4,18 @@ Frontend untuk aplikasi Learning Management System (LMS) bernama **Scholarly**. 
 
 Repo ini adalah proyek **Vue 3 + Vite** dengan **Pinia** (state management), **Vue Router** (routing), dan **TailwindCSS** (styling).
 
+Credentials
+```bash
+admin@pandu.id
+admin123#
+
+teacher@pandu.id
+teacher123#
+
+student@pandu.id
+student123#
+```
+
 ## Ringkasan Fitur
 
 1. Autentikasi
